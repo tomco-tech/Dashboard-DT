@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tableau de bord opérationnel</title>
+  <title>Tableau de bord DT</title>
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
   <style>
     :root {
@@ -28,183 +28,557 @@
     }
     * { box-sizing: border-box; }
     html, body { min-height: 100%; }
-    body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    button, select { font: inherit; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 14px/1.4 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input { font: inherit; }
     button { cursor: pointer; }
     .app { min-height: 100vh; padding: 16px; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 11px; }
-    .brand { min-width: 0; }
-    .brand h1 { margin: 0; font-size: 25px; line-height: 1.08; letter-spacing: -0.03em; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    .brand h1 { margin: 0; font-size: 25px; line-height: 1.08; letter-spacing: -.03em; }
     .top-actions { display: flex; align-items: center; gap: 9px; }
     .refresh-state { color: var(--muted); font-size: 12px; min-width: 88px; text-align: right; }
-    .btn { min-height: 35px; padding: 7px 11px; border: 1px solid var(--line-strong); border-radius: 11px; background: #fff; color: #344258; font-weight: 750; }
+    .btn {
+      min-height: 35px;
+      padding: 7px 11px;
+      border: 1px solid var(--line-strong);
+      border-radius: 11px;
+      background: #fff;
+      color: #344258;
+      font-weight: 760;
+    }
     .btn:hover { background: #f9fbfd; border-color: #aebbcf; }
-    .filter-card { width: min(760px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 15px; box-shadow: var(--shadow-soft); padding: 10px 12px; margin: 0 auto 20px; }
-    .filters { display: grid; grid-template-columns: minmax(170px, 220px) minmax(170px, 220px) auto; gap: 9px; align-items: end; justify-content: center; }
-    .filter-label { display: block; margin: 0 0 5px 2px; font-size: 10.5px; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
-    select { width: 100%; height: 37px; padding: 0 34px 0 10px; border: 1px solid var(--line-strong); border-radius: 10px; background: #fff; color: var(--ink); outline: none; appearance: none; background-image: linear-gradient(45deg, transparent 50%, #667085 50%), linear-gradient(135deg, #667085 50%, transparent 50%); background-position: calc(100% - 16px) 15px, calc(100% - 11px) 15px; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; }
-    select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(49,87,213,.11); }
-    .scope { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
-    .scope-gap { height: 46px; background: transparent; }
-    .scope-head { padding: 17px 18px 14px; border-bottom: 1px solid var(--line); }
-    .scope-head h2 { margin: 0; color: #4e5b70; font-size: 17px; line-height: 1.1; font-weight: 900; letter-spacing: .085em; text-transform: uppercase; }
-    .scope-body { padding: 15px 14px 16px; }
+    .filter-card {
+      width: min(1180px, 100%);
+      margin: 0 auto 24px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      z-index: 20;
+    }
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(190px, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+    .filter-label {
+      display: block;
+      margin: 0 0 5px 2px;
+      font-size: 10.5px;
+      font-weight: 860;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .smart-filter { position: relative; min-width: 0; }
+    .smart-input-shell {
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
+    .smart-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #748197;
+      font-size: 14px;
+      pointer-events: none;
+    }
+    .smart-input {
+      width: 100%;
+      height: 38px;
+      padding: 0 34px 0 32px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      outline: none;
+      min-width: 0;
+    }
+    .smart-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(49,87,213,.11); }
+    .smart-clear {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 25px;
+      height: 25px;
+      padding: 0;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #708097;
+      font-size: 17px;
+      line-height: 1;
+      display: none;
+    }
+    .smart-clear:hover { background: #eef2f7; color: #344258; }
+    .smart-suggestions {
+      display: none;
+      position: absolute;
+      z-index: 100;
+      top: calc(100% + 5px);
+      left: 0;
+      right: 0;
+      max-height: 260px;
+      overflow: auto;
+      padding: 5px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 14px 34px rgba(25,39,66,.16);
+    }
+    .smart-suggestions.open { display: block; }
+    .suggestion {
+      width: 100%;
+      min-height: 34px;
+      padding: 7px 9px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #26344c;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
+    }
+    .suggestion:hover, .suggestion.active { background: #eef3ff; }
+    .suggestion-label { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .suggestion-count {
+      flex: 0 0 auto;
+      min-width: 25px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #eef2f7;
+      color: #617087;
+      font-size: 10px;
+      font-weight: 820;
+      text-align: center;
+    }
+    .suggestion-empty { padding: 12px 9px; color: var(--muted); font-size: 11.5px; text-align: center; }
+    .filter-actions { display: flex; align-items: end; gap: 8px; }
+    .filter-actions .btn { width: 100%; }
+    .visual-selection {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+      padding: 7px 9px 7px 11px;
+      border: 1px solid #ced8ee;
+      border-radius: 10px;
+      background: #f3f6ff;
+      color: #405071;
+      font-size: 11.5px;
+    }
+    .visual-selection.visible { display: flex; }
+    .selection-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .selection-clear { flex: 0 0 auto; border: 0; background: transparent; color: #3157d5; font-weight: 820; padding: 3px 5px; }
+    .scope {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .scope-gap { height: 54px; background: transparent; }
+    .scope-head { padding: 18px 19px 15px; border-bottom: 1px solid var(--line); }
+    .scope-head-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .scope-head h2 {
+      margin: 0;
+      color: #46546a;
+      font-size: 19px;
+      line-height: 1.1;
+      font-weight: 920;
+      letter-spacing: .085em;
+      text-transform: uppercase;
+    }
+    .scope-total {
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: #eef2f7;
+      color: #536176;
+      font-size: 10.8px;
+      font-weight: 820;
+      white-space: nowrap;
+    }
+    .scope-body { padding: 15px 14px 17px; }
     .metric-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 13px; }
-    .metric-card { width: 154px; flex: 0 0 154px; min-height: 56px; padding: 8px 10px; border-radius: 13px; border: 1px solid #e0e6ef; background: var(--slate-soft); display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 9px; }
+    .metric-card {
+      width: 150px;
+      flex: 0 0 150px;
+      min-height: 56px;
+      padding: 8px 10px;
+      border-radius: 13px;
+      border: 1px solid #e0e6ef;
+      background: var(--slate-soft);
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      align-items: center;
+      gap: 9px;
+      transition: opacity .16s ease, filter .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+    button.metric-card { text-align: left; color: inherit; }
+    .metric-card.clickable:hover { border-color: #aab8d2; box-shadow: var(--shadow-soft); }
+    .metric-card.active { border-color: #7790e9; box-shadow: inset 0 0 0 2px rgba(49,87,213,.12); }
     .metric-card.overdue { background: var(--red-soft); border-color: #efc9c5; }
     .metric-card.risk { background: var(--orange-soft); border-color: #efd6b1; }
-    .metric-label { font-size: 10.5px; font-weight: 860; letter-spacing: .065em; text-transform: uppercase; color: var(--muted); }
-    .metric-value { font-size: 24px; line-height: 1; font-weight: 890; letter-spacing: -.04em; }
+    .metric-label { font-size: 10.5px; font-weight: 870; letter-spacing: .065em; text-transform: uppercase; color: var(--muted); }
+    .metric-value { font-size: 24px; line-height: 1; font-weight: 900; letter-spacing: -.04em; }
     .panel { border: 1px solid var(--line); border-radius: 15px; background: #fff; overflow: hidden; }
-    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 13px 9px; border-bottom: 1px solid var(--line); }
-    .panel-title { font-size: 14px; font-weight: 850; letter-spacing: -.012em; }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 13px 9px;
+      border-bottom: 1px solid var(--line);
+    }
+    .panel-title { font-size: 14px; font-weight: 860; letter-spacing: -.012em; }
     .panel-caption { color: var(--muted); font-size: 11px; margin-top: 2px; }
-    .panel-count { padding: 4px 8px; border-radius: 999px; background: #eef2f7; color: #536176; font-size: 10.5px; font-weight: 800; white-space: nowrap; }
-    .service-bars { position: relative; height: 330px; margin: 11px 12px 13px; overflow: hidden; border-radius: 14px; background: #f4f7fb; }
-    .service-bars .empty-state { position: absolute; inset: 10px; display: grid; place-items: center; }
-    .service-row { position: absolute; border: 3px solid #fff; border-radius: 12px; padding: 9px 10px; text-align: left; color: #22304a; min-width: 0; overflow: hidden; transition: transform .14s ease, filter .14s ease, box-shadow .14s ease; }
-    .service-row:hover { filter: brightness(.975); transform: translateY(-1px); z-index: 3; }
-    .service-row.active { box-shadow: inset 0 0 0 3px var(--blue), 0 5px 14px rgba(49,87,213,.18); z-index: 4; }
-    .service-row-head { height: 100%; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 6px; min-width: 0; }
-    .service-name { min-width: 0; max-width: 100%; font-size: 12px; line-height: 1.16; font-weight: 830; white-space: normal; overflow-wrap: anywhere; }
-    .service-value { flex: 0 0 auto; min-width: 25px; text-align: center; padding: 2px 7px; border-radius: 999px; background: rgba(255,255,255,.78); color: #273650; border: 1px solid rgba(255,255,255,.92); font-size: 10.8px; font-weight: 880; }
-    .service-row.compact { padding: 7px 8px; }
-    .service-row.compact .service-name { font-size: 9.6px; line-height: 1.08; overflow-wrap: normal; word-break: normal; }
-    .service-row.compact .service-value { font-size: 9.7px; padding: 1px 5px; min-width: 21px; }
-    .dt-layout { display: grid; grid-template-columns: minmax(560px, 1.5fr) minmax(320px, .82fr); gap: 12px; }
+    .panel-count { padding: 4px 8px; border-radius: 999px; background: #eef2f7; color: #536176; font-size: 10.5px; font-weight: 820; white-space: nowrap; }
+    .service-treemap {
+      position: relative;
+      height: 350px;
+      margin: 11px 12px 13px;
+      overflow: hidden;
+      border-radius: 14px;
+      background: #f4f7fb;
+    }
+    .service-treemap .empty-state { position: absolute; inset: 10px; display: grid; place-items: center; }
+    .service-tile {
+      position: absolute;
+      border: 3px solid #fff;
+      border-radius: 12px;
+      padding: 9px 10px;
+      text-align: left;
+      color: #22304a;
+      min-width: 0;
+      overflow: hidden;
+      transition: transform .14s ease, opacity .16s ease, filter .16s ease, box-shadow .14s ease;
+    }
+    .service-tile:hover { filter: brightness(.975); transform: translateY(-1px); z-index: 3; }
+    .service-tile.active { box-shadow: inset 0 0 0 3px var(--blue), 0 5px 14px rgba(49,87,213,.18); z-index: 4; }
+    .service-tile-head { height: 100%; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 6px; min-width: 0; }
+    .service-name { min-width: 0; max-width: 100%; font-size: 12px; line-height: 1.16; font-weight: 840; white-space: normal; overflow-wrap: anywhere; }
+    .service-value { flex: 0 0 auto; min-width: 25px; text-align: center; padding: 2px 7px; border-radius: 999px; background: rgba(255,255,255,.8); color: #273650; border: 1px solid rgba(255,255,255,.94); font-size: 10.8px; font-weight: 890; }
+    .service-tile.compact { padding: 7px 8px; }
+    .service-tile.compact .service-name { font-size: 9.7px; line-height: 1.08; }
+    .service-tile.compact .service-value { font-size: 9.7px; padding: 1px 5px; min-width: 21px; }
+    .dt-layout { display: grid; grid-template-columns: minmax(590px, 1.52fr) minmax(330px, .82fr); gap: 12px; }
     .projection-body { padding: 10px 11px 11px; overflow: hidden; }
-    .projection-legend { display: flex; align-items: center; gap: 13px; flex-wrap: wrap; margin-bottom: 7px; }
-    .legend-item { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10.8px; font-weight: 720; }
-    .legend-dot { width: 9px; height: 9px; border-radius: 3px; }
+    .projection-legend { display: flex; align-items: center; gap: 7px 12px; flex-wrap: wrap; margin-bottom: 8px; max-height: 72px; overflow: auto; }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 5px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 10.5px;
+      font-weight: 740;
+      transition: opacity .16s ease, filter .16s ease, background .14s ease;
+    }
+    .legend-item:hover { background: #f1f4f8; }
+    .legend-item.active { background: #edf2ff; color: #334a9f; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 3px; flex: 0 0 auto; }
     .projection-scroll { overflow-x: auto; overflow-y: hidden; }
-    .projection-chart { height: 252px; min-width: 760px; display: grid; grid-template-columns: 43px minmax(0,1fr); gap: 8px; }
+    .projection-chart { height: 260px; min-width: 790px; display: grid; grid-template-columns: 43px minmax(0,1fr); gap: 8px; }
     .y-axis { position: relative; height: 100%; color: var(--muted); font-size: 9.5px; border-right: 1px solid #c5d0df; }
     .y-axis::before { content: "Nb"; position: absolute; top: 1px; right: 6px; color: #7b879a; font-size: 9px; font-weight: 800; }
     .y-label { position: absolute; right: 6px; transform: translateY(50%); }
     .plot { position: relative; display: grid; gap: 8px; align-items: end; border-bottom: 1px solid #c5d0df; padding: 0 5px 43px; }
     .grid-line { position: absolute; left: 0; right: 0; height: 1px; background: #edf1f6; pointer-events: none; }
     .week-column { height: 100%; display: flex; flex-direction: column; justify-content: flex-end; position: relative; min-width: 0; }
-    .bar-group { height: 187px; display: flex; align-items: flex-end; justify-content: center; gap: 3px; }
-    .bar-wrap { width: min(18px, 28%); height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; }
-    .bar-number { min-height: 14px; margin-bottom: 2px; text-align: center; color: #526074; font-size: 9.5px; font-weight: 850; }
-    .group-bar { width: 100%; min-height: 0; border-radius: 5px 5px 1px 1px; }
-    .group-bar.dt { background: #5f7ee1; }
-    .group-bar.deployed { background: #63ae88; }
-    .group-bar.completed { background: #2f7457; }
+    .stack-area { height: 188px; display: flex; align-items: flex-end; justify-content: center; }
+    .stack-total { width: 39px; display: flex; flex-direction: column-reverse; align-items: stretch; justify-content: flex-start; overflow: hidden; border-radius: 6px 6px 1px 1px; }
+    .stack-segment {
+      width: 100%;
+      min-height: 2px;
+      padding: 0;
+      border: 0;
+      border-top: 1px solid rgba(255,255,255,.7);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 850;
+      display: grid;
+      place-items: center;
+      transition: opacity .16s ease, filter .16s ease;
+    }
+    .stack-segment:first-child { border-top: 0; }
+    .week-total { min-height: 15px; margin-bottom: 3px; text-align: center; color: #526074; font-size: 9.7px; font-weight: 850; }
     .week-label { position: absolute; top: calc(100% + 7px); left: 50%; transform: translateX(-50%); text-align: center; color: var(--muted); font-size: 9.5px; font-weight: 730; line-height: 1.15; white-space: nowrap; }
-    .month-divider { display: none; }
     .no-target-note { margin-top: 8px; padding: 7px 9px; border-radius: 9px; background: #f6f8fb; color: var(--muted); font-size: 11px; }
-    .alerts-list { max-height: 340px; overflow: auto; padding: 9px 10px 11px; }
-    .alert-item { padding: 9px 10px; border: 1px solid #efcbc8; border-left: 4px solid var(--red); border-radius: 11px; background: #fffafa; margin-bottom: 7px; }
+    .alerts-list { max-height: 374px; overflow: auto; padding: 9px 10px 11px; }
+    .alert-item {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid #efcbc8;
+      border-left: 4px solid var(--red);
+      border-radius: 11px;
+      background: #fffafa;
+      margin-bottom: 7px;
+      color: inherit;
+      text-align: left;
+      transition: opacity .16s ease, filter .16s ease, box-shadow .14s ease;
+    }
     .alert-item:last-child { margin-bottom: 0; }
-    .alert-title { font-size: 12.2px; line-height: 1.25; font-weight: 850; }
+    .alert-item:hover { box-shadow: var(--shadow-soft); }
+    .alert-item.risk { border-color: #efd8b7; border-left-color: var(--orange); background: #fffcf7; }
+    .alert-item.active { box-shadow: inset 0 0 0 2px rgba(49,87,213,.16), var(--shadow-soft); border-color: #9fb0e7; }
+    .alert-title { font-size: 12.2px; line-height: 1.25; font-weight: 860; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .alert-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
-    .tag { display: inline-flex; align-items: center; padding: 3px 7px; border-radius: 999px; background: #f0f3f7; color: #4d5a6e; font-size: 10.2px; font-weight: 750; }
+    .tag { display: inline-flex; align-items: center; padding: 3px 7px; border-radius: 999px; background: #f0f3f7; color: #4d5a6e; font-size: 10.2px; font-weight: 760; }
     .tag.danger { background: var(--red-soft); color: #aa302a; }
     .tag.risk { background: var(--orange-soft); color: #965300; }
     .tag.prio { background: #fff1df; color: #9a5704; }
-    .alert-item.risk { border-color: #efd8b7; border-left-color: var(--orange); background: #fffcf7; }
+    .subjects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(245px, 1fr));
+      gap: 10px;
+      max-height: 620px;
+      overflow: auto;
+      padding: 12px;
+      background: #f9fafc;
+    }
+    .subject-card {
+      min-height: 145px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      color: inherit;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: opacity .16s ease, filter .16s ease, border-color .14s ease, box-shadow .14s ease;
+    }
+    .subject-card:hover { border-color: #aebbd0; box-shadow: var(--shadow-soft); }
+    .subject-card.active { border-color: #6f88e4; box-shadow: inset 0 0 0 2px rgba(49,87,213,.12), var(--shadow-soft); }
+    .subject-eyebrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 9.8px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+    .subject-source { white-space: nowrap; }
+    .subject-category { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+    .subject-title { font-size: 13.2px; line-height: 1.24; font-weight: 870; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .subject-service { color: #5b687d; font-size: 11.5px; font-weight: 720; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .subject-meta { margin-top: auto; display: flex; flex-wrap: wrap; gap: 5px; }
+    .prio-p0, .prio-p1 { background: var(--red-soft); color: #ae302a; }
+    .prio-p2 { background: var(--orange-soft); color: #985400; }
+    .prio-p3 { background: #eaf0ff; color: #3157c5; }
+    .prio-p4, .prio-default { background: #eef2f7; color: #566477; }
     .empty-state { padding: 22px 15px; text-align: center; color: var(--muted); font-size: 11.5px; border: 1px dashed #d7dfeb; border-radius: 12px; background: #fafbfd; }
     .empty-state.good { color: var(--green); border-color: #bfe2d2; background: #f1faf5; font-weight: 760; }
     .error { margin: 0 0 14px; padding: 11px 12px; border-radius: 12px; background: #fff0ef; border: 1px solid #efcbc7; color: #a22d27; font-size: 12px; }
-    @media (max-width: 1120px) { .dt-layout { grid-template-columns: 1fr; } .service-bars { height: 360px; } }
-    @media (max-width: 760px) { .app { padding: 10px; } .topbar { align-items: flex-start; } .brand h1 { font-size: 21px; } .filters { grid-template-columns: 1fr; width: 100%; } .filter-card { max-width: 430px; } .metric-card { width: 145px; flex-basis: 145px; } .service-bars { height: 410px; } .projection-chart { min-width: 710px; } }
+    .warning { margin: 0 0 14px; padding: 10px 12px; border-radius: 12px; background: #fff8e9; border: 1px solid #eed8aa; color: #805414; font-size: 12px; }
+    .is-dimmed { opacity: .2 !important; filter: grayscale(.75) !important; }
+    @media (max-width: 1180px) {
+      .dt-layout { grid-template-columns: 1fr; }
+      .subjects-grid { grid-template-columns: repeat(2, minmax(235px, 1fr)); }
+      .service-treemap { height: 380px; }
+    }
+    @media (max-width: 820px) {
+      .app { padding: 10px; }
+      .topbar { align-items: flex-start; }
+      .brand h1 { font-size: 21px; }
+      .filters-grid { grid-template-columns: 1fr 1fr; }
+      .subjects-grid { grid-template-columns: 1fr; }
+      .metric-card { width: 145px; flex-basis: 145px; }
+      .service-treemap { height: 420px; }
+      .projection-chart { min-width: 760px; }
+    }
+    @media (max-width: 520px) {
+      .filters-grid { grid-template-columns: 1fr; }
+      .top-actions { flex-direction: column-reverse; align-items: flex-end; }
+    }
   </style>
 </head>
 <body>
   <main class="app">
     <header class="topbar">
-      <div class="brand"><h1 id="dashboardTitle">Tableau de bord DT</h1></div>
+      <div class="brand"><h1>Tableau de bord DT</h1></div>
       <div class="top-actions"><span class="refresh-state" id="refreshState">Connexion…</span><button class="btn" id="refreshBtn">Rafraîchir</button></div>
     </header>
+
     <section class="filter-card">
-      <div class="filters">
-        <div><label class="filter-label" for="categoryFilter">Catégorie</label><select id="categoryFilter"><option value="">Toutes les catégories</option></select></div>
-        <div><label class="filter-label" for="serviceFilter">Service utilisateur</label><select id="serviceFilter"><option value="">Tous les services</option></select></div>
-        <button class="btn" id="resetBtn">Réinitialiser</button>
+      <div class="filters-grid">
+        <div class="smart-filter" data-filter="service">
+          <label class="filter-label" for="serviceInput">Service utilisateur</label>
+          <div class="smart-input-shell"><span class="smart-icon">⌕</span><input class="smart-input" id="serviceInput" autocomplete="off" placeholder="Tous les services" /><button class="smart-clear" id="serviceClear" type="button" aria-label="Effacer le service">×</button></div>
+          <div class="smart-suggestions" id="serviceSuggestions"></div>
+        </div>
+        <div class="smart-filter" data-filter="community">
+          <label class="filter-label" for="communityInput">Communauté</label>
+          <div class="smart-input-shell"><span class="smart-icon">⌕</span><input class="smart-input" id="communityInput" autocomplete="off" placeholder="Toutes les communautés" /><button class="smart-clear" id="communityClear" type="button" aria-label="Effacer la communauté">×</button></div>
+          <div class="smart-suggestions" id="communitySuggestions"></div>
+        </div>
+        <div class="smart-filter" data-filter="priority">
+          <label class="filter-label" for="priorityInput">Priorité</label>
+          <div class="smart-input-shell"><span class="smart-icon">⌕</span><input class="smart-input" id="priorityInput" autocomplete="off" placeholder="Toutes les priorités" /><button class="smart-clear" id="priorityClear" type="button" aria-label="Effacer la priorité">×</button></div>
+          <div class="smart-suggestions" id="prioritySuggestions"></div>
+        </div>
+        <div class="smart-filter" data-filter="status">
+          <label class="filter-label" for="statusInput">Statut</label>
+          <div class="smart-input-shell"><span class="smart-icon">⌕</span><input class="smart-input" id="statusInput" autocomplete="off" placeholder="Tous les statuts" /><button class="smart-clear" id="statusClear" type="button" aria-label="Effacer le statut">×</button></div>
+          <div class="smart-suggestions" id="statusSuggestions"></div>
+        </div>
+        <div class="smart-filter" data-filter="health">
+          <label class="filter-label" for="healthInput">État</label>
+          <div class="smart-input-shell"><span class="smart-icon">⌕</span><input class="smart-input" id="healthInput" autocomplete="off" placeholder="Tous les états" /><button class="smart-clear" id="healthClear" type="button" aria-label="Effacer l’état">×</button></div>
+          <div class="smart-suggestions" id="healthSuggestions"></div>
+        </div>
+        <div class="smart-filter" data-filter="target">
+          <label class="filter-label" for="targetInput">Date cible</label>
+          <div class="smart-input-shell"><span class="smart-icon">⌕</span><input class="smart-input" id="targetInput" autocomplete="off" placeholder="Toutes les dates cibles" /><button class="smart-clear" id="targetClear" type="button" aria-label="Effacer la date cible">×</button></div>
+          <div class="smart-suggestions" id="targetSuggestions"></div>
+        </div>
+        <div class="filter-actions"><button class="btn" id="resetBtn" type="button">Réinitialiser les filtres</button></div>
       </div>
+      <div class="visual-selection" id="visualSelection"><span class="selection-text" id="selectionText"></span><button class="selection-clear" id="selectionClear" type="button">Effacer la mise en évidence</button></div>
     </section>
-    <div id="errorBox"></div>
+
+    <div id="messageBox"></div>
+
     <section class="scope">
-      <div class="scope-head"><h2>Périmètre ACMOSS</h2></div>
+      <div class="scope-head"><div class="scope-head-row"><h2>Périmètre ACMOSS</h2><span class="scope-total" id="acmossTotal">0 sujet</span></div></div>
       <div class="scope-body">
         <div class="metric-grid">
-          <article class="metric-card"><div class="metric-label">Demandes en cours</div><div class="metric-value" id="ongoingCount">0</div></article>
-          <article class="metric-card overdue"><div class="metric-label">En retard</div><div class="metric-value" id="overdueCount">0</div></article>
-          <article class="metric-card risk"><div class="metric-label">À risque</div><div class="metric-value" id="riskCount">0</div></article>
+          <article class="metric-card" id="ongoingMetric"><div class="metric-label">Demandes en cours</div><div class="metric-value" id="ongoingCount">0</div></article>
+          <article class="metric-card overdue" id="overdueMetric"><div class="metric-label">En retard</div><div class="metric-value" id="overdueCount">0</div></article>
+          <article class="metric-card risk" id="riskMetric"><div class="metric-label">À risque</div><div class="metric-value" id="riskCount">0</div></article>
         </div>
         <article class="panel">
-          <div class="panel-head"><div><div class="panel-title">Répartition des demandes par service</div><div class="panel-caption">Cliquez sur un service pour filtrer le tableau de bord.</div></div><span class="panel-count" id="serviceCountBadge">0 service</span></div>
-          <div class="service-bars" id="serviceBars"></div>
+          <div class="panel-head"><div><div class="panel-title">Répartition des demandes par service</div><div class="panel-caption">La taille de chaque compartiment dépend du nombre de sujets.</div></div><span class="panel-count" id="serviceCountBadge">0 service</span></div>
+          <div class="service-treemap" id="serviceTreemap"></div>
         </article>
       </div>
     </section>
+
     <div class="scope-gap" aria-hidden="true"></div>
+
     <section class="scope">
-      <div class="scope-head"><h2>Périmètre DT</h2></div>
+      <div class="scope-head"><div class="scope-head-row"><h2>Périmètre DT</h2><span class="scope-total" id="dtTotal">0 sujet</span></div></div>
       <div class="scope-body">
         <div class="metric-grid">
-          <article class="metric-card"><div class="metric-label">En cours DT</div><div class="metric-value" id="dtCount">0</div></article>
-          <article class="metric-card"><div class="metric-label">Déployés</div><div class="metric-value" id="deployedCount">0</div></article>
-          <article class="metric-card"><div class="metric-label">Terminés</div><div class="metric-value" id="completedCount">0</div></article>
+          <button class="metric-card clickable" id="dtMetric" type="button"><div class="metric-label">En cours DT</div><div class="metric-value" id="dtCount">0</div></button>
+          <button class="metric-card clickable" id="deployedMetric" type="button"><div class="metric-label">Déployés</div><div class="metric-value" id="deployedCount">0</div></button>
+          <button class="metric-card clickable" id="completedMetric" type="button"><div class="metric-label">Terminés</div><div class="metric-value" id="completedCount">0</div></button>
         </div>
         <div class="dt-layout">
           <article class="panel">
-            <div class="panel-head"><div><div class="panel-title">Projection des livraisons</div><div class="panel-caption">Mois en cours et mois suivant, par tranche de 7 jours.</div></div><span class="panel-count" id="projectionTotal">0 demande</span></div>
+            <div class="panel-head"><div><div class="panel-title">Projection des livraisons</div><div class="panel-caption">Mois en cours et mois suivant, ventilés par catégorie.</div></div><span class="panel-count" id="projectionTotal">0 sujet</span></div>
             <div class="projection-body">
-              <div class="projection-legend"><span class="legend-item"><span class="legend-dot" style="background:#5f7ee1"></span>En cours DT</span><span class="legend-item"><span class="legend-dot" style="background:#63ae88"></span>Déployé</span><span class="legend-item"><span class="legend-dot" style="background:#2f7457"></span>Terminé</span></div>
+              <div class="projection-legend" id="projectionLegend"></div>
               <div class="projection-scroll"><div class="projection-chart"><div class="y-axis" id="yAxis"></div><div class="plot" id="projectionPlot"></div></div></div>
-              <div class="no-target-note" id="noTargetNote">0 demande En cours DT sans Date Cible.</div>
+              <div class="no-target-note" id="noTargetNote">0 sujet sans date cible.</div>
             </div>
           </article>
           <article class="panel">
-            <div class="panel-head"><div><div class="panel-title">Alertes DT</div><div class="panel-caption">Demandes En cours DT dont l’État est « En retard » ou « À risque ».</div></div><span class="panel-count" id="alertCount">0 alerte</span></div>
+            <div class="panel-head"><div><div class="panel-title">Sujets à risque ou en retard</div><div class="panel-caption">Sujets dont la colonne État signale un risque ou un retard.</div></div><span class="panel-count" id="alertCount">0 sujet</span></div>
             <div class="alerts-list" id="alertsList"></div>
           </article>
         </div>
       </div>
     </section>
+
+    <div class="scope-gap" style="height:30px" aria-hidden="true"></div>
+
+    <section class="scope">
+      <div class="scope-head"><div class="scope-head-row"><h2>Sujets concernés</h2><span class="scope-total" id="subjectCount">0 sujet</span></div></div>
+      <div class="subjects-grid" id="subjectsGrid"></div>
+    </section>
   </main>
 
   <script>
   (() => {
+    const EMPTY = "__EMPTY__";
+    const NO_TARGET = "__NO_TARGET__";
+
+    const SOURCE_DEFS = [
+      { key: "emm", label: "EMM", tableLabel: "B_EMM", candidates: ["B_EMM"] },
+      { key: "infra", label: "Infra & Flux", tableLabel: "B_Infra & Flux", candidates: ["B_Infra_Flux", "B_Infra & Flux", "B_Infra__Flux"] },
+      { key: "conception", label: "Chantiers de conception", tableLabel: "B_Chantiers de conception", candidates: ["B_Chantiers_de_conception", "B_Chantiers de conception"] }
+    ];
+
     const FIELD_DEFS = {
       Service: ["Service Utilisateur", "Service utilisateur", "Service_Utilisateur", "Service_utilisateur"],
+      Community: ["Communauté Nationale", "Communaute Nationale", "Communauté", "Communaute", "Service"],
+      Title: ["Intitulé", "Intitule", "Titre", "Sujet", "Libellé", "Libelle"],
       Category: ["Catégorie", "Categorie", "Category"],
-      Priority: ["Prio", "Priorité", "Priorite"],
-      Status: ["Statut", "Status"],
-      State: ["Etat", "État", "State"],
-      Target: ["Date Cible", "Date cible", "Date_Cible", "Date_cible", "Cible", "Target"],
-      DesiredDate: ["Date souhaitée", "Date souhaitee", "Date_souhaitee"],
       Description: ["Description"],
-      Comment: ["Commentaire"]
+      Priority: ["Prio", "Priorité", "Priorite"],
+      Modified: ["Modifiée le", "Modifée le", "Modifiee le", "Modifee le"],
+      Status: ["Statut", "Status"],
+      Assigned: ["Assignée à", "Assignee a", "Assigné à", "Assigne a"],
+      Comment: ["Commentaire", "Comment"],
+      Target: ["Date Cible", "Date cible", "Date_Cible", "Date_cible", "Cible", "Cble", "Target"],
+      State: ["État", "Etat", "State"],
+      Created: ["Créé le", "Cree le", "Créée le", "Creee le"],
+      Case: ["Cas"]
+    };
+
+    const CATEGORY_COLORS = [
+      "#3157d5", "#7c5cff", "#0f8b8d", "#d97706", "#c2410c", "#7c3aed",
+      "#0891b2", "#65a30d", "#db2777", "#4f46e5", "#b45309", "#0f766e",
+      "#9333ea", "#0284c7", "#ca8a04", "#be123c", "#4d7c0f", "#6d28d9"
+    ];
+
+    const FILTER_CONFIG = {
+      service: { input: "serviceInput", list: "serviceSuggestions", clear: "serviceClear", placeholder: "Tous les services" },
+      community: { input: "communityInput", list: "communitySuggestions", clear: "communityClear", placeholder: "Toutes les communautés" },
+      priority: { input: "priorityInput", list: "prioritySuggestions", clear: "priorityClear", placeholder: "Toutes les priorités" },
+      status: { input: "statusInput", list: "statusSuggestions", clear: "statusClear", placeholder: "Tous les statuts" },
+      health: { input: "healthInput", list: "healthSuggestions", clear: "healthClear", placeholder: "Tous les états" },
+      target: { input: "targetInput", list: "targetSuggestions", clear: "targetClear", placeholder: "Toutes les dates cibles" }
     };
 
     const state = {
-      tableId: "",
-      fields: {},
+      tableIds: [],
       metaByTable: new Map(),
       metaById: new Map(),
+      sources: [],
       refCatalogs: new Map(),
+      serviceCatalogId: "",
       records: [],
-      category: "",
-      service: "",
+      filters: { service: "", community: "", priority: "", status: "", health: "", target: "" },
+      categoryColors: new Map(),
+      highlight: null,
+      controls: new Map(),
       loading: false,
       reloadTimer: null
     };
 
     const $ = id => document.getElementById(id);
     const text = value => value == null ? "" : String(value).trim();
-    const norm = value => text(value).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "");
+    const normWords = value => text(value).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[’']/g, " ").replace(/[^a-z0-9]+/g, " ").trim().replace(/\s+/g, " ");
+    const norm = value => normWords(value).replace(/\s+/g, "");
     const esc = value => String(value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-    const unique = arr => Array.from(new Set(arr.filter(Boolean)));
+    const unique = values => Array.from(new Set(values.filter(Boolean)));
+    const intersects = (records, ids) => records.some(record => ids.has(record.uid));
 
     function rowsFrom(raw) {
       if (!raw) return [];
       if (Array.isArray(raw)) return raw;
       if (Array.isArray(raw.id)) {
         return raw.id.map((id, index) => {
-          const row = {id};
+          const row = { id };
           Object.keys(raw).forEach(key => row[key] = raw[key][index]);
           return row;
         });
@@ -240,13 +614,8 @@
         const tableId = tableByMetaId.get(Number(row.parentId));
         if (!tableId) return;
         const meta = {
-          id: Number(row.id),
-          tableId,
-          colId: row.colId,
-          label: row.label || row.colId,
-          type: row.type || "Any",
-          visibleCol: Number(row.visibleCol || 0),
-          displayCol: Number(row.displayCol || 0),
+          id: Number(row.id), tableId, colId: row.colId, label: row.label || row.colId,
+          type: row.type || "Any", visibleCol: Number(row.visibleCol || 0), displayCol: Number(row.displayCol || 0),
           widgetOptions: parseWidgetOptions(row.widgetOptions)
         };
         state.metaById.set(meta.id, meta);
@@ -260,37 +629,50 @@
       });
     }
 
-    function inferFields(raw) {
-      const keys = Object.keys(raw || {}).filter(key => key !== "id");
-      const meta = state.metaByTable.get(state.tableId) || new Map();
-      const candidates = keys.map(key => ({
-        key,
-        keyNorm: norm(key),
-        labelNorm: norm(meta.get(key)?.label || key)
-      }));
-      state.fields = {};
-      Object.entries(FIELD_DEFS).forEach(([alias, aliases]) => {
-        const targets = aliases.map(norm);
-        let match = null;
-        for (const target of targets) {
-          match = candidates.find(c => c.keyNorm === target || c.labelNorm === target);
-          if (match) break;
-        }
-        if (!match) {
-          for (const target of targets) {
-            match = candidates.find(c => c.keyNorm.includes(target) || c.labelNorm.includes(target) || target.includes(c.keyNorm) || target.includes(c.labelNorm));
-            if (match) break;
-          }
-        }
-        state.fields[alias] = match?.key || "";
-      });
+    function findTableId(candidates) {
+      const exact = new Map(state.tableIds.map(id => [norm(id), id]));
+      for (const candidate of candidates) {
+        const found = exact.get(norm(candidate));
+        if (found) return found;
+      }
+      for (const candidate of candidates) {
+        const target = norm(candidate);
+        const found = state.tableIds.find(id => norm(id).includes(target) || target.includes(norm(id)));
+        if (found) return found;
+      }
+      return "";
     }
 
-    function chooseDisplayColumn(tableId, raw, sourceMetas) {
+    function resolveColumn(raw, tableId, aliases, allowPartial = true) {
+      const keys = Object.keys(raw || {}).filter(key => key !== "id");
+      const meta = state.metaByTable.get(tableId) || new Map();
+      const candidates = keys.map(key => ({ key, keyNorm: norm(key), labelNorm: norm(meta.get(key)?.label || key) }));
+      const targets = aliases.map(norm);
+      for (const target of targets) {
+        const exact = candidates.find(candidate => candidate.keyNorm === target || candidate.labelNorm === target);
+        if (exact) return exact.key;
+      }
+      if (!allowPartial) return "";
+      for (const target of targets.filter(value => value.length >= 5)) {
+        const partial = candidates.find(candidate => candidate.keyNorm.includes(target) || candidate.labelNorm.includes(target) || target.includes(candidate.keyNorm) || target.includes(candidate.labelNorm));
+        if (partial) return partial.key;
+      }
+      return "";
+    }
+
+    function inferFields(raw, tableId) {
+      const fields = {};
+      Object.entries(FIELD_DEFS).forEach(([alias, aliases]) => {
+        fields[alias] = resolveColumn(raw, tableId, aliases, alias !== "Community");
+      });
+      return fields;
+    }
+
+    function chooseDisplayColumn(tableId, raw, sourceMetas = []) {
       const keys = Object.keys(raw || {}).filter(key => key !== "id");
       for (const sourceMeta of sourceMetas) {
-        if (sourceMeta.visibleColId && keys.includes(sourceMeta.visibleColId)) return sourceMeta.visibleColId;
-        if (sourceMeta.displayColId && keys.includes(sourceMeta.displayColId)) return sourceMeta.displayColId;
+        if (sourceMeta?.visibleColId && keys.includes(sourceMeta.visibleColId)) return sourceMeta.visibleColId;
+        if (sourceMeta?.displayColId && keys.includes(sourceMeta.displayColId)) return sourceMeta.displayColId;
       }
       const targetMeta = state.metaByTable.get(tableId) || new Map();
       const preferred = ["Nom", "Nom Long", "Libellé", "Libelle", "Name", "Label", "Titre", "Code"];
@@ -301,36 +683,101 @@
       return keys[0] || "";
     }
 
-    async function loadReferenceCatalogs() {
-      state.refCatalogs = new Map();
-      const selectedMeta = state.metaByTable.get(state.tableId) || new Map();
-      const refs = new Map();
-      Object.values(state.fields).forEach(colId => {
-        const meta = selectedMeta.get(colId);
-        if (!meta?.refTableId) return;
-        if (!refs.has(meta.refTableId)) refs.set(meta.refTableId, []);
-        refs.get(meta.refTableId).push(meta);
-      });
-      await Promise.all([...refs.entries()].map(async ([tableId, sourceMetas]) => {
+    async function loadSources() {
+      const warnings = [];
+      const sources = [];
+      for (const def of SOURCE_DEFS) {
+        const tableId = findTableId(def.candidates);
+        if (!tableId) {
+          warnings.push(`Table « ${def.tableLabel} » introuvable`);
+          continue;
+        }
         try {
           const raw = await grist.docApi.fetchTable(tableId);
-          const displayCol = chooseDisplayColumn(tableId, raw, sourceMetas);
-          const items = rowsFrom(raw).map(row => ({id:Number(row.id), label:text(row[displayCol]) || `#${row.id}`}));
-          state.refCatalogs.set(tableId, {byId:new Map(items.map(item => [item.id, item.label]))});
+          const fields = inferFields(raw, tableId);
+          if (!fields.Service || !fields.Status) {
+            warnings.push(`Colonnes Service Utilisateur ou Statut introuvables dans « ${def.tableLabel} »`);
+            continue;
+          }
+          sources.push({ ...def, tableId, raw, rows: rowsFrom(raw), fields, meta: state.metaByTable.get(tableId) || new Map() });
+        } catch (error) {
+          warnings.push(`Lecture impossible de « ${def.tableLabel} »`);
+          console.warn(error);
+        }
+      }
+      state.sources = sources;
+      return warnings;
+    }
+
+    async function loadReferenceCatalogs() {
+      state.refCatalogs = new Map();
+      const requested = new Map();
+      state.sources.forEach(source => {
+        Object.values(source.fields).forEach(colId => {
+          const meta = source.meta.get(colId);
+          if (!meta?.refTableId) return;
+          if (!requested.has(meta.refTableId)) requested.set(meta.refTableId, []);
+          requested.get(meta.refTableId).push(meta);
+        });
+      });
+      state.serviceCatalogId = findTableId(["REF_Services_Utilisateurs", "REF_Services Utilisateurs", "REF_Services_Utilisateur"]);
+      if (state.serviceCatalogId && !requested.has(state.serviceCatalogId)) requested.set(state.serviceCatalogId, []);
+
+      const rawCatalogs = new Map();
+      await Promise.all([...requested.entries()].map(async ([tableId, sourceMetas]) => {
+        try {
+          const raw = await grist.docApi.fetchTable(tableId);
+          rawCatalogs.set(tableId, {
+            tableId, raw, rows: rowsFrom(raw), displayCol: chooseDisplayColumn(tableId, raw, sourceMetas),
+            communityCol: resolveColumn(raw, tableId, ["Communauté Nationale", "Communaute Nationale", "Communauté", "Communaute", "Service"], false)
+          });
         } catch (error) {
           console.warn("Référentiel non chargé", tableId, error);
         }
       }));
+
+      const nested = new Set();
+      rawCatalogs.forEach(catalog => {
+        if (!catalog.communityCol) return;
+        const meta = state.metaByTable.get(catalog.tableId)?.get(catalog.communityCol);
+        if (meta?.refTableId && !rawCatalogs.has(meta.refTableId)) nested.add(meta.refTableId);
+      });
+      await Promise.all([...nested].map(async tableId => {
+        try {
+          const raw = await grist.docApi.fetchTable(tableId);
+          rawCatalogs.set(tableId, { tableId, raw, rows: rowsFrom(raw), displayCol: chooseDisplayColumn(tableId, raw, []), communityCol: "" });
+        } catch (error) { console.warn("Référentiel secondaire non chargé", tableId, error); }
+      }));
+
+      rawCatalogs.forEach(catalog => {
+        state.refCatalogs.set(catalog.tableId, { ...catalog, byId: new Map(), byNormLabel: new Map() });
+      });
+      state.refCatalogs.forEach(catalog => {
+        const displayMeta = state.metaByTable.get(catalog.tableId)?.get(catalog.displayCol);
+        catalog.rows.forEach(row => {
+          const label = displaySimple(row[catalog.displayCol], displayMeta) || `#${row.id}`;
+          const item = { id: Number(row.id), label, row, communities: [] };
+          catalog.byId.set(item.id, item);
+          if (!catalog.byNormLabel.has(normWords(label))) catalog.byNormLabel.set(normWords(label), item);
+        });
+      });
+      state.refCatalogs.forEach(catalog => {
+        if (!catalog.communityCol) return;
+        const communityMeta = state.metaByTable.get(catalog.tableId)?.get(catalog.communityCol);
+        catalog.byId.forEach(item => {
+          item.communities = splitPlainValues(displayRaw(item.row[catalog.communityCol], communityMeta));
+        });
+      });
     }
 
-    function displayRaw(value, meta) {
+    function displaySimple(value, meta) {
       if (value === null || value === undefined || value === "") return "";
       const target = refTarget(meta?.type || "");
       if (target) {
-        const catalog = state.refCatalogs.get(target)?.byId;
+        const catalog = state.refCatalogs.get(target);
         const one = raw => {
           if (raw === null || raw === undefined || raw === "" || Number(raw) === 0) return "";
-          return catalog?.get(Number(raw)) || text(raw);
+          return catalog?.byId.get(Number(raw))?.label || text(raw);
         };
         if ((meta?.type || "").startsWith("RefList:")) return listValues(value).map(one).filter(Boolean).join(", ");
         return one(value);
@@ -339,21 +786,61 @@
       return text(value);
     }
 
-    function fieldDisplay(row, alias) {
-      const colId = state.fields[alias];
+    function displayRaw(value, meta) { return displaySimple(value, meta); }
+
+    function sourceFieldDisplay(source, row, alias) {
+      const colId = source.fields[alias];
       if (!colId) return "";
-      const meta = state.metaByTable.get(state.tableId)?.get(colId);
-      return displayRaw(row[colId], meta);
+      return displayRaw(row[colId], source.meta.get(colId));
     }
 
-    function fieldRaw(row, alias) {
-      const colId = state.fields[alias];
+    function sourceFieldRaw(source, row, alias) {
+      const colId = source.fields[alias];
       return colId ? row[colId] : null;
+    }
+
+    function splitPlainValues(value) {
+      const raw = text(value);
+      if (!raw) return [];
+      return raw.split(/[;,]/).map(part => part.trim()).filter(Boolean);
+    }
+
+    function extractServices(source, row) {
+      const colId = source.fields.Service;
+      const meta = source.meta.get(colId);
+      const raw = row[colId];
+      const target = refTarget(meta?.type || "");
+      const labels = [];
+      const communities = [];
+      if (target) {
+        const catalog = state.refCatalogs.get(target);
+        listValues(raw).forEach(value => {
+          if (value === null || value === undefined || value === "" || Number(value) === 0) return;
+          const item = catalog?.byId.get(Number(value));
+          const label = item?.label || text(value);
+          if (label) labels.push(label);
+          (item?.communities || []).forEach(value => communities.push(value));
+        });
+      } else {
+        splitPlainValues(sourceFieldDisplay(source, row, "Service")).forEach(value => labels.push(value));
+      }
+
+      const serviceCatalog = state.refCatalogs.get(state.serviceCatalogId);
+      labels.forEach(label => {
+        const item = serviceCatalog?.byNormLabel.get(normWords(label));
+        (item?.communities || []).forEach(value => communities.push(value));
+      });
+
+      splitPlainValues(sourceFieldDisplay(source, row, "Community")).forEach(value => communities.push(value));
+      return {
+        services: unique(labels.length ? labels : ["Service non renseigné"]),
+        communities: unique(communities)
+      };
     }
 
     function dateToISO(value, defaultYear = new Date().getFullYear()) {
       if (value === null || value === undefined || value === "") return "";
-      if (value instanceof Date) return value.toISOString().slice(0,10);
+      if (value instanceof Date) return value.toISOString().slice(0, 10);
       if (Array.isArray(value)) {
         if (["d", "D"].includes(value[0])) return dateToISO(value[1], defaultYear);
         return dateToISO(value[1] ?? value.join(" "), defaultYear);
@@ -361,15 +848,15 @@
       if (typeof value === "number" && Number.isFinite(value)) {
         const ms = Math.abs(value) >= 100000000000 ? value : value * 1000;
         const date = new Date(ms);
-        return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0,10);
+        return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
       }
-      const stringValue = text(value);
+      const stringValue = text(value).replace(/\u00a0/g, " ");
       if (!stringValue || stringValue === "-") return "";
       if (/^\d{9,13}$/.test(stringValue)) {
         const numeric = Number(stringValue);
         const ms = stringValue.length >= 12 ? numeric : numeric * 1000;
         const date = new Date(ms);
-        return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0,10);
+        return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
       }
       let match = stringValue.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ].*)?$/);
       if (match) return `${match[1]}-${match[2]}-${match[3]}`;
@@ -379,12 +866,12 @@
         if (year < 100) year += 2000;
         const month = Number(match[2]);
         const day = Number(match[1]);
-        const iso = `${year}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+        const iso = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
         const check = new Date(`${iso}T00:00:00Z`);
         return check.getUTCFullYear() === year && check.getUTCMonth() + 1 === month && check.getUTCDate() === day ? iso : "";
       }
       const parsed = Date.parse(stringValue);
-      return Number.isNaN(parsed) ? "" : new Date(parsed).toISOString().slice(0,10);
+      return Number.isNaN(parsed) ? "" : new Date(parsed).toISOString().slice(0, 10);
     }
 
     function formatDate(iso) {
@@ -393,62 +880,240 @@
       return `${day}/${month}/${year}`;
     }
 
-    function isFinalStatus(status) {
-      const value = norm(status);
-      return ["deploye", "deployee", "termine", "terminee"].includes(value);
+    function truncate(value, max = 88) {
+      const clean = text(value).replace(/\s+/g, " ");
+      return clean.length > max ? `${clean.slice(0, max - 1).trim()}…` : clean;
     }
 
-    function isDtStatus(status) { return norm(status) === "encoursdt"; }
-    function isDeployed(status) { return ["deploye", "deployee"].includes(norm(status)); }
-    function isCompleted(status) { return ["termine", "terminee"].includes(norm(status)); }
-
-    function isOverdue(record) {
-      return norm(record.state) === "enretard";
-    }
-
-    function isAtRisk(record) {
-      const value = norm(record.state);
-      return value === "arisque" || value.includes("arisque");
-    }
-
-    function normalizeRecord(row) {
-      const targetRaw = fieldRaw(row, "Target");
+    function normalizeRecord(source, row) {
+      const serviceData = extractServices(source, row);
+      const category = sourceFieldDisplay(source, row, "Category") || "Sans catégorie";
+      const description = sourceFieldDisplay(source, row, "Description");
+      let title = sourceFieldDisplay(source, row, "Title");
+      if (!title && source.key === "emm") title = description ? `${category} — ${truncate(description, 78)}` : category;
+      if (!title) title = description ? truncate(description, 92) : category;
       return {
-        id: Number(row.id),
-        service: fieldDisplay(row, "Service") || "Service non renseigné",
-        category: fieldDisplay(row, "Category") || "Sans catégorie",
-        priority: fieldDisplay(row, "Priority"),
-        status: fieldDisplay(row, "Status"),
-        state: fieldDisplay(row, "State"),
-        targetISO: dateToISO(targetRaw),
-        description: fieldDisplay(row, "Description"),
-        comment: fieldDisplay(row, "Comment")
+        uid: `${source.key}:${row.id}`,
+        rowId: Number(row.id),
+        sourceKey: source.key,
+        sourceLabel: source.label,
+        services: serviceData.services,
+        serviceLabel: serviceData.services.join(", "),
+        communities: serviceData.communities,
+        title: title || "Sujet sans intitulé",
+        category,
+        description,
+        priority: sourceFieldDisplay(source, row, "Priority"),
+        modifiedISO: dateToISO(sourceFieldRaw(source, row, "Modified")),
+        status: sourceFieldDisplay(source, row, "Status"),
+        state: sourceFieldDisplay(source, row, "State"),
+        targetISO: dateToISO(sourceFieldRaw(source, row, "Target")),
+        createdISO: dateToISO(sourceFieldRaw(source, row, "Created")),
+        comment: sourceFieldDisplay(source, row, "Comment")
       };
     }
 
-    function filteredRecords() {
-      return state.records.filter(record => {
-        if (state.category && record.category !== state.category) return false;
-        if (state.service && record.service !== state.service) return false;
-        return true;
+    function enrichCommunities(records) {
+      const byService = new Map();
+      records.forEach(record => {
+        if (!record.communities.length) return;
+        record.services.forEach(service => {
+          const key = normWords(service);
+          if (!byService.has(key)) byService.set(key, new Set());
+          record.communities.forEach(value => byService.get(key).add(value));
+        });
+      });
+      records.forEach(record => {
+        if (!record.communities.length) {
+          record.services.forEach(service => (byService.get(normWords(service)) || []).forEach(value => record.communities.push(value)));
+        }
+        record.communities = unique(record.communities.length ? record.communities : ["Non renseignée"]);
       });
     }
 
-    function populateFilters() {
-      const currentCategory = state.category;
-      const currentService = state.service;
-      const categories = unique(state.records.map(record => record.category)).sort((a,b) => a.localeCompare(b,"fr",{sensitivity:"base"}));
-      const services = unique(state.records.filter(record => !currentCategory || record.category === currentCategory).map(record => record.service)).sort((a,b) => a.localeCompare(b,"fr",{sensitivity:"base"}));
-      $("categoryFilter").innerHTML = '<option value="">Toutes les catégories</option>' + categories.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join("");
-      $("serviceFilter").innerHTML = '<option value="">Tous les services</option>' + services.map(value => `<option value="${esc(value)}">${esc(value)}</option>`).join("");
-      $("categoryFilter").value = categories.includes(currentCategory) ? currentCategory : "";
-      $("serviceFilter").value = services.includes(currentService) ? currentService : "";
-      state.category = $("categoryFilter").value;
-      state.service = $("serviceFilter").value;
+    function buildCategoryColors() {
+      const categories = unique(state.records.map(record => record.category)).sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }));
+      state.categoryColors = new Map(categories.map((category, index) => [category, CATEGORY_COLORS[index % CATEGORY_COLORS.length]]));
     }
 
-    function renderHeader() {
-      $("dashboardTitle").textContent = "Tableau de bord DT";
+    function recordValues(record, field) {
+      if (field === "service") return record.services;
+      if (field === "community") return record.communities;
+      if (field === "priority") return [record.priority || EMPTY];
+      if (field === "status") return [record.status || EMPTY];
+      if (field === "health") return [record.state || EMPTY];
+      if (field === "target") return [record.targetISO || NO_TARGET];
+      return [];
+    }
+
+    function matchesFilter(record, field, value) {
+      if (!value) return true;
+      return recordValues(record, field).includes(value);
+    }
+
+    function recordsMatchingFilters(excludeField = "") {
+      return state.records.filter(record => Object.entries(state.filters).every(([field, value]) => field === excludeField || matchesFilter(record, field, value)));
+    }
+
+    function filteredRecords() { return recordsMatchingFilters(""); }
+
+    function optionLabel(field, value) {
+      if (value === EMPTY) return "Non renseigné";
+      if (value === NO_TARGET) return "Sans date cible";
+      if (field === "target") return formatDate(value);
+      return value;
+    }
+
+    function priorityRank(value) {
+      const match = normWords(value).match(/^p\s*(\d+)/);
+      return match ? Number(match[1]) : 99;
+    }
+
+    function statusRank(value) {
+      const order = ["en attente cu", "en cours dud", "en cours dt", "dispatch", "en conception", "déployé", "termine", "terminé"];
+      const normalized = normWords(value);
+      const index = order.findIndex(item => normWords(item) === normalized);
+      return index >= 0 ? index : 90;
+    }
+
+    function getFilterOptions(field) {
+      const counts = new Map();
+      recordsMatchingFilters(field).forEach(record => recordValues(record, field).forEach(value => counts.set(value, (counts.get(value) || 0) + 1)));
+      const options = [...counts.entries()].map(([value, count]) => ({ value, label: optionLabel(field, value), count }));
+      options.sort((a, b) => {
+        if (field === "priority") return priorityRank(a.value) - priorityRank(b.value) || a.label.localeCompare(b.label, "fr");
+        if (field === "status") return statusRank(a.value) - statusRank(b.value) || a.label.localeCompare(b.label, "fr");
+        if (field === "target") {
+          if (a.value === NO_TARGET) return 1;
+          if (b.value === NO_TARGET) return -1;
+          return a.value.localeCompare(b.value);
+        }
+        if (a.value === EMPTY) return 1;
+        if (b.value === EMPTY) return -1;
+        return a.label.localeCompare(b.label, "fr", { sensitivity: "base" });
+      });
+      return options;
+    }
+
+    class SmartFilter {
+      constructor(field, config) {
+        this.field = field;
+        this.input = $(config.input);
+        this.list = $(config.list);
+        this.clear = $(config.clear);
+        this.placeholder = config.placeholder;
+        this.activeIndex = -1;
+        this.visibleOptions = [];
+        this.bind();
+      }
+      bind() {
+        this.input.addEventListener("focus", () => this.open());
+        this.input.addEventListener("input", () => {
+          const current = state.filters[this.field];
+          if (current && this.input.value !== optionLabel(this.field, current)) {
+            state.filters[this.field] = "";
+            state.highlight = null;
+            renderDashboard(this.field);
+          }
+          this.renderSuggestions();
+          this.updateClear();
+        });
+        this.input.addEventListener("keydown", event => {
+          if (event.key === "ArrowDown") { event.preventDefault(); this.move(1); }
+          else if (event.key === "ArrowUp") { event.preventDefault(); this.move(-1); }
+          else if (event.key === "Enter") {
+            if (this.activeIndex >= 0 && this.visibleOptions[this.activeIndex]) { event.preventDefault(); this.select(this.visibleOptions[this.activeIndex].value); }
+          } else if (event.key === "Escape") this.close();
+        });
+        this.input.addEventListener("blur", () => setTimeout(() => { this.close(); this.sync(); }, 120));
+        this.clear.addEventListener("mousedown", event => event.preventDefault());
+        this.clear.addEventListener("click", () => this.select(""));
+      }
+      open() { this.renderSuggestions(); this.list.classList.add("open"); }
+      close() { this.list.classList.remove("open"); this.activeIndex = -1; }
+      move(delta) {
+        if (!this.list.classList.contains("open")) this.open();
+        if (!this.visibleOptions.length) return;
+        this.activeIndex = Math.max(0, Math.min(this.visibleOptions.length - 1, this.activeIndex + delta));
+        this.renderSuggestions(true);
+      }
+      renderSuggestions(keepIndex = false) {
+        const query = normWords(this.input.value);
+        const options = getFilterOptions(this.field).filter(option => !query || normWords(option.label).includes(query));
+        this.visibleOptions = options.slice(0, 80);
+        if (!keepIndex) this.activeIndex = -1;
+        if (!this.visibleOptions.length) {
+          this.list.innerHTML = '<div class="suggestion-empty">Aucune option disponible.</div>';
+        } else {
+          this.list.innerHTML = this.visibleOptions.map((option, index) => `<button type="button" class="suggestion ${index === this.activeIndex ? "active" : ""}" data-value="${esc(option.value)}"><span class="suggestion-label">${esc(option.label)}</span><span class="suggestion-count">${option.count}</span></button>`).join("");
+          this.list.querySelectorAll("[data-value]").forEach(button => {
+            button.addEventListener("mousedown", event => event.preventDefault());
+            button.addEventListener("click", () => this.select(button.dataset.value));
+          });
+          if (this.activeIndex >= 0) this.list.children[this.activeIndex]?.scrollIntoView({ block: "nearest" });
+        }
+        this.list.classList.add("open");
+      }
+      select(value) {
+        state.filters[this.field] = value;
+        state.highlight = null;
+        this.close();
+        renderDashboard();
+      }
+      updateClear() { this.clear.style.display = this.input.value || state.filters[this.field] ? "block" : "none"; }
+      sync() {
+        const value = state.filters[this.field];
+        this.input.value = value ? optionLabel(this.field, value) : "";
+        this.input.placeholder = this.placeholder;
+        this.updateClear();
+      }
+    }
+
+    function setupSmartFilters() {
+      Object.entries(FILTER_CONFIG).forEach(([field, config]) => state.controls.set(field, new SmartFilter(field, config)));
+      document.addEventListener("mousedown", event => {
+        state.controls.forEach(control => { if (!control.input.closest(".smart-filter").contains(event.target)) control.close(); });
+      });
+    }
+
+    function isFinalStatus(status) {
+      const value = normWords(status);
+      return ["déployé", "deploie", "termine", "terminé", "terminée"].map(normWords).includes(value);
+    }
+    function isDtStatus(status) { return norm(status) === "encoursdt"; }
+    function isDeployed(status) { return ["deploye", "deployee"].includes(norm(status)); }
+    function isCompleted(status) { return ["termine", "terminee"].includes(norm(status)); }
+    function isOverdue(record) { return norm(record.state) === "enretard"; }
+    function isAtRisk(record) { return norm(record.state) === "arisque"; }
+
+    function priorityClass(priority) {
+      const rank = priorityRank(priority);
+      return rank === 0 ? "prio-p0" : rank === 1 ? "prio-p1" : rank === 2 ? "prio-p2" : rank === 3 ? "prio-p3" : rank === 4 ? "prio-p4" : "prio-default";
+    }
+
+    function highlightMatches(records) { return !state.highlight || intersects(records, state.highlight.ids); }
+
+    function applySubsetVisual(element, records, activeKey = "") {
+      element.classList.toggle("is-dimmed", Boolean(state.highlight) && !highlightMatches(records));
+      if (activeKey) element.classList.toggle("active", state.highlight?.key === activeKey);
+    }
+
+    function toggleHighlight(key, label, records) {
+      if (state.highlight?.key === key) state.highlight = null;
+      else state.highlight = { key, label, ids: new Set(records.map(record => record.uid)) };
+      renderDashboard();
+    }
+
+    function renderSelection(records) {
+      if (state.highlight && !intersects(records, state.highlight.ids)) state.highlight = null;
+      const container = $("visualSelection");
+      if (!state.highlight) {
+        container.classList.remove("visible");
+        return;
+      }
+      const count = records.filter(record => state.highlight.ids.has(record.uid)).length;
+      $("selectionText").textContent = `${state.highlight.label} · ${count} sujet${count > 1 ? "s" : ""}`;
+      container.classList.add("visible");
     }
 
     function treemapWorst(row, side) {
@@ -457,9 +1122,7 @@
       const min = Math.min(...row.map(item => item.area));
       const max = Math.max(...row.map(item => item.area));
       if (!sum || !min) return Infinity;
-      const sideSquared = side * side;
-      const sumSquared = sum * sum;
-      return Math.max(sideSquared * max / sumSquared, sumSquared / (sideSquared * min));
+      return Math.max(side * side * max / (sum * sum), (sum * sum) / (side * side * min));
     }
 
     function placeTreemapRow(row, rect, output) {
@@ -470,83 +1133,81 @@
         let cursorY = rect.y;
         row.forEach((item, index) => {
           const itemHeight = index === row.length - 1 ? rect.y + rect.height - cursorY : item.area / rowWidth;
-          output.push({...item, x:rect.x, y:cursorY, width:rowWidth, height:itemHeight});
+          output.push({ ...item, x: rect.x, y: cursorY, width: rowWidth, height: itemHeight });
           cursorY += itemHeight;
         });
-        return {x:rect.x + rowWidth, y:rect.y, width:Math.max(0, rect.width - rowWidth), height:rect.height};
+        return { x: rect.x + rowWidth, y: rect.y, width: Math.max(0, rect.width - rowWidth), height: rect.height };
       }
       const rowHeight = rowArea / rect.width;
       let cursorX = rect.x;
       row.forEach((item, index) => {
         const itemWidth = index === row.length - 1 ? rect.x + rect.width - cursorX : item.area / rowHeight;
-        output.push({...item, x:cursorX, y:rect.y, width:itemWidth, height:rowHeight});
+        output.push({ ...item, x: cursorX, y: rect.y, width: itemWidth, height: rowHeight });
         cursorX += itemWidth;
       });
-      return {x:rect.x, y:rect.y + rowHeight, width:rect.width, height:Math.max(0, rect.height - rowHeight)};
+      return { x: rect.x, y: rect.y + rowHeight, width: rect.width, height: Math.max(0, rect.height - rowHeight) };
     }
 
     function squarifiedTreemap(items, x, y, width, height) {
       if (!items.length || width <= 0 || height <= 0) return [];
       const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
       const scale = totalWeight ? width * height / totalWeight : 0;
-      const remaining = items.map(item => ({...item, area:item.weight * scale}));
+      const remaining = items.map(item => ({ ...item, area: item.weight * scale }));
       const output = [];
-      let rect = {x, y, width, height};
+      let rect = { x, y, width, height };
       let row = [];
       while (remaining.length) {
         const candidate = remaining[0];
         const side = Math.min(rect.width, rect.height);
-        if (!row.length || treemapWorst([...row, candidate], side) <= treemapWorst(row, side)) {
-          row.push(remaining.shift());
-        } else {
-          rect = placeTreemapRow(row, rect, output);
-          row = [];
-        }
+        if (!row.length || treemapWorst([...row, candidate], side) <= treemapWorst(row, side)) row.push(remaining.shift());
+        else { rect = placeTreemapRow(row, rect, output); row = []; }
       }
       if (row.length) placeTreemapRow(row, rect, output);
       return output;
     }
 
     function renderServiceTreemap(records) {
-      const counts = new Map();
-      records.forEach(record => counts.set(record.service, (counts.get(record.service) || 0) + 1));
-      const entries = [...counts.entries()].sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0],"fr"));
+      const groups = new Map();
+      records.forEach(record => record.services.forEach(service => {
+        if (!groups.has(service)) groups.set(service, []);
+        groups.get(service).push(record);
+      }));
+      const entries = [...groups.entries()].map(([service, items]) => [service, unique(items.map(item => item.uid)).map(uid => items.find(item => item.uid === uid))]).sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0], "fr"));
       $("serviceCountBadge").textContent = `${entries.length} service${entries.length > 1 ? "s" : ""}`;
-      const container = $("serviceBars");
-      if (!entries.length) {
-        container.innerHTML = '<div class="empty-state">Aucune demande pour les filtres sélectionnés.</div>';
-        return;
-      }
+      const container = $("serviceTreemap");
+      if (!entries.length) { container.innerHTML = '<div class="empty-state">Aucun sujet pour les filtres sélectionnés.</div>'; return; }
       const width = Math.max(320, container.clientWidth || 900);
-      const height = Math.max(250, container.clientHeight || 330);
-      const layout = squarifiedTreemap(entries.map(([service, count]) => ({service, count, weight:Math.max(1, count)})), 0, 0, width, height);
-      const max = Math.max(1, ...entries.map(([,count]) => count));
+      const height = Math.max(260, container.clientHeight || 350);
+      const maxCount = Math.max(1, ...entries.map(([, items]) => items.length));
+      const minWeight = Math.max(1, maxCount * .28);
+      const layout = squarifiedTreemap(entries.map(([service, items]) => ({ service, items, count: items.length, weight: Math.max(items.length, minWeight) })), 0, 0, width, height);
       const gap = 2;
-      container.innerHTML = layout.map((rect, index) => {
-        const left = rect.x + gap;
-        const top = rect.y + gap;
+      container.innerHTML = layout.map(rect => {
         const tileWidth = Math.max(0, rect.width - gap * 2);
         const tileHeight = Math.max(0, rect.height - gap * 2);
-        const ratio = rect.count / max;
-        const lightness = Math.round(96 - ratio * 17);
-        const compact = tileWidth < 112 || tileHeight < 76;
-        return `<button class="service-row ${compact ? "compact" : ""} ${state.service === rect.service ? "active" : ""}" data-service="${esc(rect.service)}" title="${esc(rect.service)} — ${rect.count} demande${rect.count > 1 ? "s" : ""}" style="left:${left}px;top:${top}px;width:${tileWidth}px;height:${tileHeight}px;background:hsl(220 68% ${lightness}%);"><span class="service-row-head"><span class="service-name">${esc(rect.service)}</span><span class="service-value">${rect.count}</span></span></button>`;
+        const ratio = rect.count / maxCount;
+        const lightness = Math.round(96 - ratio * 18);
+        const compact = tileWidth < 118 || tileHeight < 76;
+        const key = `service:${rect.service}`;
+        const classes = ["service-tile", compact ? "compact" : "", state.highlight?.key === key ? "active" : "", state.highlight && !highlightMatches(rect.items) ? "is-dimmed" : ""].filter(Boolean).join(" ");
+        return `<button class="${classes}" data-service-key="${esc(key)}" style="left:${rect.x + gap}px;top:${rect.y + gap}px;width:${tileWidth}px;height:${tileHeight}px;background:hsl(220 68% ${lightness}%);" title="${esc(rect.service)} — ${rect.count} sujet${rect.count > 1 ? "s" : ""}"><span class="service-tile-head"><span class="service-name">${esc(rect.service)}</span><span class="service-value">${rect.count}</span></span></button>`;
       }).join("");
-      container.querySelectorAll("[data-service]").forEach(button => button.addEventListener("click", () => {
-        const selected = button.dataset.service;
-        state.service = state.service === selected ? "" : selected;
-        populateFilters();
-        render();
-      }));
+      layout.forEach(rect => {
+        container.querySelector(`[data-service-key="${CSS.escape(`service:${rect.service}`)}"]`)?.addEventListener("click", () => toggleHighlight(`service:${rect.service}`, `Service : ${rect.service}`, rect.items));
+      });
     }
 
     function renderOverview(records) {
-      const ongoing = records.filter(record => record.status && !isFinalStatus(record.status)).length;
-      const overdue = records.filter(isOverdue).length;
-      const risk = records.filter(isAtRisk).length;
-      $("ongoingCount").textContent = ongoing;
-      $("overdueCount").textContent = overdue;
-      $("riskCount").textContent = risk;
+      const ongoing = records.filter(record => record.status && !isFinalStatus(record.status));
+      const overdue = records.filter(isOverdue);
+      const risk = records.filter(isAtRisk);
+      $("ongoingCount").textContent = ongoing.length;
+      $("overdueCount").textContent = overdue.length;
+      $("riskCount").textContent = risk.length;
+      $("acmossTotal").textContent = `${records.length} sujet${records.length > 1 ? "s" : ""}`;
+      applySubsetVisual($("ongoingMetric"), ongoing);
+      applySubsetVisual($("overdueMetric"), overdue);
+      applySubsetVisual($("riskMetric"), risk);
       renderServiceTreemap(records);
     }
 
@@ -554,14 +1215,14 @@
       const now = new Date();
       const months = [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth() + 1, 1)];
       const buckets = [];
-      months.forEach((monthDate, monthIndex) => {
+      months.forEach(monthDate => {
         const year = monthDate.getFullYear();
         const month = monthDate.getMonth();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         for (let startDay = 1; startDay <= daysInMonth; startDay += 7) {
           const endDay = Math.min(startDay + 6, daysInMonth);
-          const key = `${year}-${String(month + 1).padStart(2,"0")}-${String(startDay).padStart(2,"0")}`;
-          buckets.push({key, year, month, startDay, endDay, monthIndex, firstOfMonth:startDay === 1, dt:0, deployed:0, completed:0});
+          const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(startDay).padStart(2, "0")}`;
+          buckets.push({ key, year, month, startDay, endDay, categories: new Map(), records: [] });
         }
       });
       return buckets;
@@ -573,18 +1234,17 @@
       const year = Number(yearText), month = Number(monthText), day = Number(dayText);
       if (!year || !month || !day) return "";
       const startDay = Math.floor((day - 1) / 7) * 7 + 1;
-      return `${year}-${String(month).padStart(2,"0")}-${String(startDay).padStart(2,"0")}`;
+      return `${year}-${String(month).padStart(2, "0")}-${String(startDay).padStart(2, "0")}`;
     }
 
     function bucketLabel(bucket) {
-      const monthName = new Date(bucket.year, bucket.month, 1).toLocaleDateString("fr-FR", {month:"short"}).replace(".", "");
-      const monthDisplay = `${monthName.charAt(0).toUpperCase()}${monthName.slice(1)}`;
-      return `${bucket.startDay}–${bucket.endDay}<br>${monthDisplay}`;
+      const monthName = new Date(bucket.year, bucket.month, 1).toLocaleDateString("fr-FR", { month: "short" }).replace(".", "");
+      return `${bucket.startDay}–${bucket.endDay}<br>${monthName.charAt(0).toUpperCase()}${monthName.slice(1)}`;
     }
 
     function niceTicks(maxValue) {
       if (maxValue <= 0) return [0, 1];
-      if (maxValue <= 8) return Array.from({length:maxValue + 1}, (_, index) => index);
+      if (maxValue <= 8) return Array.from({ length: maxValue + 1 }, (_, index) => index);
       const rawStep = maxValue / 5;
       const magnitude = 10 ** Math.floor(Math.log10(rawStep));
       const normalized = rawStep / magnitude;
@@ -596,92 +1256,151 @@
       return ticks;
     }
 
+    function renderDtMetrics(records) {
+      const groups = [
+        { element: $("dtMetric"), count: $("dtCount"), key: "status:encoursdt", label: "Statut : En cours DT", items: records.filter(record => isDtStatus(record.status)) },
+        { element: $("deployedMetric"), count: $("deployedCount"), key: "status:deploye", label: "Statut : Déployé", items: records.filter(record => isDeployed(record.status)) },
+        { element: $("completedMetric"), count: $("completedCount"), key: "status:termine", label: "Statut : Terminé", items: records.filter(record => isCompleted(record.status)) }
+      ];
+      groups.forEach(group => {
+        group.count.textContent = group.items.length;
+        applySubsetVisual(group.element, group.items, group.key);
+        group.element.onclick = () => toggleHighlight(group.key, group.label, group.items);
+      });
+      $("dtTotal").textContent = `${records.length} sujet${records.length > 1 ? "s" : ""}`;
+    }
+
     function renderProjection(records) {
-      const dt = records.filter(record => isDtStatus(record.status));
-      const deployed = records.filter(record => isDeployed(record.status));
-      const completed = records.filter(record => isCompleted(record.status));
-      $("dtCount").textContent = dt.length;
-      $("deployedCount").textContent = deployed.length;
-      $("completedCount").textContent = completed.length;
       const buckets = buildProjectionBuckets();
       const byKey = new Map(buckets.map(bucket => [bucket.key, bucket]));
       records.forEach(record => {
         if (!record.targetISO) return;
         const bucket = byKey.get(projectionBucketKey(record.targetISO));
         if (!bucket) return;
-        if (isDtStatus(record.status)) bucket.dt += 1;
-        else if (isDeployed(record.status)) bucket.deployed += 1;
-        else if (isCompleted(record.status)) bucket.completed += 1;
+        bucket.records.push(record);
+        if (!bucket.categories.has(record.category)) bucket.categories.set(record.category, []);
+        bucket.categories.get(record.category).push(record);
       });
-      const maxValue = Math.max(1, ...buckets.flatMap(bucket => [bucket.dt, bucket.deployed, bucket.completed]));
+      const projectionRecords = buckets.flatMap(bucket => bucket.records);
+      const categories = unique(projectionRecords.map(record => record.category)).sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }));
+      const legend = $("projectionLegend");
+      if (!categories.length) legend.innerHTML = '<span class="panel-caption">Aucune catégorie à projeter sur les deux mois.</span>';
+      else {
+        legend.innerHTML = categories.map(category => {
+          const items = projectionRecords.filter(record => record.category === category);
+          const key = `projection-category:${category}`;
+          const classes = ["legend-item", state.highlight?.key === key ? "active" : "", state.highlight && !highlightMatches(items) ? "is-dimmed" : ""].filter(Boolean).join(" ");
+          return `<button type="button" class="${classes}" data-category-key="${esc(key)}"><span class="legend-dot" style="background:${state.categoryColors.get(category)}"></span>${esc(category)}</button>`;
+        }).join("");
+        categories.forEach(category => {
+          const items = projectionRecords.filter(record => record.category === category);
+          legend.querySelector(`[data-category-key="${CSS.escape(`projection-category:${category}`)}"]`)?.addEventListener("click", () => toggleHighlight(`projection-category:${category}`, `Catégorie : ${category}`, items));
+        });
+      }
+
+      const maxValue = Math.max(1, ...buckets.map(bucket => bucket.records.length));
       const ticks = niceTicks(maxValue);
       const axisMax = Math.max(1, ticks[ticks.length - 1]);
-      const chartHeight = 170;
+      const chartHeight = 172;
       $("yAxis").innerHTML = ticks.map(value => `<span class="y-label" style="bottom:${43 + value / axisMax * chartHeight}px">${value}</span>`).join("");
       const plot = $("projectionPlot");
-      plot.style.gridTemplateColumns = `repeat(${buckets.length}, minmax(62px, 1fr))`;
+      plot.style.gridTemplateColumns = `repeat(${buckets.length}, minmax(68px, 1fr))`;
       const gridTicks = ticks.filter(value => value > 0 && value < axisMax && value !== 2);
       plot.innerHTML = `${gridTicks.map(value => `<span class="grid-line" style="bottom:${43 + value / axisMax * chartHeight}px"></span>`).join("")}${buckets.map(bucket => {
-        const dtHeight = bucket.dt / axisMax * chartHeight;
-        const deployedHeight = bucket.deployed / axisMax * chartHeight;
-        const completedHeight = bucket.completed / axisMax * chartHeight;
-        return `<div class="week-column"><div class="bar-group"><div class="bar-wrap" title="${bucket.dt} En cours DT"><div class="bar-number">${bucket.dt || ""}</div><div class="group-bar dt" style="height:${dtHeight}px"></div></div><div class="bar-wrap" title="${bucket.deployed} Déployé"><div class="bar-number">${bucket.deployed || ""}</div><div class="group-bar deployed" style="height:${deployedHeight}px"></div></div><div class="bar-wrap" title="${bucket.completed} Terminé"><div class="bar-number">${bucket.completed || ""}</div><div class="group-bar completed" style="height:${completedHeight}px"></div></div></div><div class="week-label">${bucketLabel(bucket)}</div></div>`;
+        const total = bucket.records.length;
+        const totalHeight = total / axisMax * chartHeight;
+        const segments = categories.map(category => {
+          const items = bucket.categories.get(category) || [];
+          if (!items.length) return "";
+          const height = total ? items.length / total * 100 : 0;
+          const key = `projection:${bucket.key}:${category}`;
+          const classes = ["stack-segment", state.highlight && !highlightMatches(items) ? "is-dimmed" : ""].filter(Boolean).join(" ");
+          const label = height >= 15 ? items.length : "";
+          return `<button type="button" class="${classes}" data-projection-key="${esc(key)}" style="height:${height}%;background:${state.categoryColors.get(category)}" title="${esc(category)} · ${bucket.startDay}–${bucket.endDay} : ${items.length}">${label}</button>`;
+        }).join("");
+        return `<div class="week-column"><div class="stack-area"><div><div class="week-total">${total || ""}</div><div class="stack-total" style="height:${totalHeight}px">${segments}</div></div></div><div class="week-label">${bucketLabel(bucket)}</div></div>`;
       }).join("")}`;
-      const projectionCount = buckets.reduce((sum, bucket) => sum + bucket.dt + bucket.deployed + bucket.completed, 0);
-      $("projectionTotal").textContent = `${projectionCount} demande${projectionCount > 1 ? "s" : ""}`;
-      const noTarget = dt.filter(record => !record.targetISO).length;
-      $("noTargetNote").textContent = `${noTarget} demande${noTarget > 1 ? "s" : ""} En cours DT sans Date Cible.`;
+      buckets.forEach(bucket => categories.forEach(category => {
+        const items = bucket.categories.get(category) || [];
+        if (!items.length) return;
+        const key = `projection:${bucket.key}:${category}`;
+        plot.querySelector(`[data-projection-key="${CSS.escape(key)}"]`)?.addEventListener("click", () => toggleHighlight(key, `${category} · ${bucket.startDay}–${bucket.endDay} ${new Date(bucket.year, bucket.month).toLocaleDateString("fr-FR", { month: "long" })}`, items));
+      }));
+      $("projectionTotal").textContent = `${projectionRecords.length} sujet${projectionRecords.length > 1 ? "s" : ""}`;
+      const noTarget = records.filter(record => !record.targetISO).length;
+      $("noTargetNote").textContent = `${noTarget} sujet${noTarget > 1 ? "s" : ""} sans date cible dans le périmètre filtré.`;
     }
 
     function renderAlerts(records) {
-      const alerts = records.filter(record => isDtStatus(record.status) && (isOverdue(record) || isAtRisk(record))).sort((a,b) => {
+      const alerts = records.filter(record => isOverdue(record) || isAtRisk(record)).sort((a, b) => {
         const severityA = isOverdue(a) ? 0 : 1;
         const severityB = isOverdue(b) ? 0 : 1;
-        return severityA - severityB || (a.targetISO || "9999").localeCompare(b.targetISO || "9999");
+        return severityA - severityB || (a.targetISO || "9999").localeCompare(b.targetISO || "9999") || priorityRank(a.priority) - priorityRank(b.priority);
       });
-      $("alertCount").textContent = `${alerts.length} alerte${alerts.length > 1 ? "s" : ""}`;
+      $("alertCount").textContent = `${alerts.length} sujet${alerts.length > 1 ? "s" : ""}`;
       if (!alerts.length) {
-        $("alertsList").innerHTML = '<div class="empty-state good">Aucune demande En cours DT avec un État « En retard » ou « À risque ».</div>';
+        $("alertsList").innerHTML = '<div class="empty-state good">Aucun sujet avec un État « En retard » ou « À risque ».</div>';
         return;
       }
       $("alertsList").innerHTML = alerts.map(record => {
         const overdue = isOverdue(record);
-        const stateLabel = overdue ? "En retard" : "À risque";
-        return `<article class="alert-item ${overdue ? "" : "risk"}"><div class="alert-title">${esc(record.service)} — ${esc(record.category)}</div><div class="alert-meta"><span class="tag ${overdue ? "danger" : "risk"}">État : ${stateLabel}</span>${record.targetISO ? `<span class="tag">Cible ${esc(formatDate(record.targetISO))}</span>` : ""}${record.priority ? `<span class="tag prio">${esc(record.priority)}</span>` : ""}</div></article>`;
+        const key = `record:${record.uid}`;
+        const classes = ["alert-item", overdue ? "" : "risk", state.highlight?.key === key ? "active" : "", state.highlight && !state.highlight.ids.has(record.uid) ? "is-dimmed" : ""].filter(Boolean).join(" ");
+        return `<button type="button" class="${classes}" data-alert-uid="${esc(record.uid)}"><div class="alert-title">${esc(record.serviceLabel)} — ${esc(record.title)}</div><div class="alert-meta"><span class="tag ${overdue ? "danger" : "risk"}">État : ${esc(record.state || (overdue ? "En retard" : "À risque"))}</span>${record.targetISO ? `<span class="tag">Cible ${esc(formatDate(record.targetISO))}</span>` : ""}${record.priority ? `<span class="tag prio">${esc(record.priority)}</span>` : ""}${record.status ? `<span class="tag">${esc(record.status)}</span>` : ""}</div></button>`;
       }).join("");
+      alerts.forEach(record => $("alertsList").querySelector(`[data-alert-uid="${CSS.escape(record.uid)}"]`)?.addEventListener("click", () => toggleHighlight(`record:${record.uid}`, `${record.serviceLabel} — ${record.title}`, [record])));
     }
 
-    function render() {
-      renderHeader();
+    function renderSubjects(records) {
+      const sorted = [...records].sort((a, b) => {
+        const stateA = isOverdue(a) ? 0 : isAtRisk(a) ? 1 : 2;
+        const stateB = isOverdue(b) ? 0 : isAtRisk(b) ? 1 : 2;
+        return stateA - stateB || priorityRank(a.priority) - priorityRank(b.priority) || (a.targetISO || "9999").localeCompare(b.targetISO || "9999") || a.title.localeCompare(b.title, "fr");
+      });
+      $("subjectCount").textContent = `${sorted.length} sujet${sorted.length > 1 ? "s" : ""}`;
+      if (!sorted.length) { $("subjectsGrid").innerHTML = '<div class="empty-state" style="grid-column:1/-1">Aucun sujet ne correspond aux filtres sélectionnés.</div>'; return; }
+      $("subjectsGrid").innerHTML = sorted.map(record => {
+        const key = `record:${record.uid}`;
+        const classes = ["subject-card", state.highlight?.key === key ? "active" : "", state.highlight && !state.highlight.ids.has(record.uid) ? "is-dimmed" : ""].filter(Boolean).join(" ");
+        const stateClass = isOverdue(record) ? "danger" : isAtRisk(record) ? "risk" : "";
+        return `<button type="button" class="${classes}" data-subject-uid="${esc(record.uid)}"><div class="subject-eyebrow"><span class="subject-source">${esc(record.sourceLabel)}</span><span class="subject-category">${esc(record.category)}</span></div><div class="subject-title">${esc(record.title)}</div><div class="subject-service">${esc(record.serviceLabel)}</div><div class="subject-meta"><span class="tag ${priorityClass(record.priority)}">${esc(record.priority || "Sans priorité")}</span><span class="tag ${stateClass}">État : ${esc(record.state || "Non renseigné")}</span><span class="tag">Statut : ${esc(record.status || "Non renseigné")}</span><span class="tag">Cible : ${esc(record.targetISO ? formatDate(record.targetISO) : "Non renseignée")}</span></div></button>`;
+      }).join("");
+      sorted.forEach(record => $("subjectsGrid").querySelector(`[data-subject-uid="${CSS.escape(record.uid)}"]`)?.addEventListener("click", () => toggleHighlight(`record:${record.uid}`, `${record.serviceLabel} — ${record.title}`, [record])));
+    }
+
+    function renderDashboard(skipControl = "") {
       const records = filteredRecords();
+      renderSelection(records);
       renderOverview(records);
+      renderDtMetrics(records);
       renderProjection(records);
       renderAlerts(records);
+      renderSubjects(records);
+      state.controls.forEach((control, field) => { if (field !== skipControl) control.sync(); });
     }
 
     async function loadData() {
       if (state.loading) return;
       state.loading = true;
       $("refreshState").textContent = "Chargement…";
-      $("errorBox").innerHTML = "";
+      $("messageBox").innerHTML = "";
       try {
-        const table = grist.getTable();
-        state.tableId = await table.getTableId();
+        state.tableIds = await grist.docApi.listTables();
         await loadMetadata();
-        const raw = await grist.docApi.fetchTable(state.tableId);
-        inferFields(raw);
-        const required = ["Service", "Category", "Status"];
-        const missing = required.filter(alias => !state.fields[alias]);
-        if (missing.length) throw new Error(`Colonnes introuvables : ${missing.join(", ")}. Rattachez le widget à B_EMM.`);
+        const warnings = await loadSources();
+        if (!state.sources.length) throw new Error("Aucune des trois tables attendues n’a pu être chargée.");
         await loadReferenceCatalogs();
-        state.records = rowsFrom(raw).map(normalizeRecord).filter(record => record.id);
-        populateFilters();
-        render();
-        $("refreshState").textContent = `Actualisé à ${new Date().toLocaleTimeString("fr-FR", {hour:"2-digit", minute:"2-digit"})}`;
+        state.records = state.sources.flatMap(source => source.rows.map(row => normalizeRecord(source, row))).filter(record => record.rowId);
+        enrichCommunities(state.records);
+        buildCategoryColors();
+        state.highlight = null;
+        if (warnings.length) $("messageBox").innerHTML = `<div class="warning"><strong>Chargement partiel.</strong> ${esc(warnings.join(" · "))}</div>`;
+        renderDashboard();
+        $("refreshState").textContent = `Actualisé à ${new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`;
       } catch (error) {
         console.error(error);
         $("refreshState").textContent = "Erreur";
-        $("errorBox").innerHTML = `<div class="error"><strong>Chargement impossible.</strong> ${esc(error.message || String(error))}</div>`;
+        $("messageBox").innerHTML = `<div class="error"><strong>Chargement impossible.</strong> ${esc(error.message || String(error))}</div>`;
       } finally {
         state.loading = false;
       }
@@ -689,27 +1408,18 @@
 
     function scheduleReload() {
       clearTimeout(state.reloadTimer);
-      state.reloadTimer = setTimeout(loadData, 300);
+      state.reloadTimer = setTimeout(loadData, 350);
     }
 
     function bind() {
+      setupSmartFilters();
       $("refreshBtn").addEventListener("click", loadData);
-      $("categoryFilter").addEventListener("change", event => {
-        state.category = event.target.value;
-        state.service = "";
-        populateFilters();
-        render();
-      });
-      $("serviceFilter").addEventListener("change", event => {
-        state.service = event.target.value;
-        render();
-      });
       $("resetBtn").addEventListener("click", () => {
-        state.category = "";
-        state.service = "";
-        populateFilters();
-        render();
+        Object.keys(state.filters).forEach(field => state.filters[field] = "");
+        state.highlight = null;
+        renderDashboard();
       });
+      $("selectionClear").addEventListener("click", () => { state.highlight = null; renderDashboard(); });
       let resizeTimer = null;
       window.addEventListener("resize", () => {
         clearTimeout(resizeTimer);
@@ -720,9 +1430,10 @@
     async function start() {
       bind();
       try {
-        grist.ready({requiredAccess:"full"});
+        grist.ready({ requiredAccess: "full" });
         if (typeof grist.onRecords === "function") grist.onRecords(scheduleReload);
         await loadData();
+        setInterval(() => { if (!document.hidden) loadData(); }, 60000);
       } catch (error) {
         console.error(error);
         $("refreshState").textContent = "Erreur";

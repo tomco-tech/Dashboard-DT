@@ -1,12 +1,27 @@
-# Tableau de bord DT — EMM v1.2
+# Tableau de bord DT global — V2
 
-Widget Grist en lecture seule, rattaché à `B_EMM`.
+Widget Grist en lecture seule consolidant :
 
-- filtres compacts par catégorie et service utilisateur ;
-- périmètre ACMOSS : indicateurs compacts et répartition des demandes par service sous forme de treemap ;
-- périmètre DT : indicateurs compacts, projection du mois en cours et du mois suivant par tranches de 7 jours ;
-- axe vertical explicite sur la projection, sans séparation graphique entre les mois ;
-- alertes `En cours DT` fondées exclusivement sur `Etat = En retard` ou `Etat = A risque` ;
-- message vert lorsqu’aucune alerte DT n’est détectée.
+- `B_EMM`
+- `B_Infra_Flux` / `B_Infra & Flux`
+- `B_Chantiers_de_conception`
 
-Colonnes principales : `Service Utilisateur`, `Catégorie`, `Prio`, `Statut`, `Cible`, `Etat`, `Description`, `Commentaire`.
+## Fonctions
+
+- filtres intelligents par service utilisateur, communauté, priorité, statut, état et date cible ;
+- KPIs consolidés des périmètres ACMOSS et DT ;
+- treemap des sujets par service ;
+- projection des livraisons du mois courant et du mois suivant, ventilée par catégorie ;
+- sujets à risque ou en retard ;
+- liste consolidée des sujets sous forme de cartes ;
+- mise en évidence croisée entre les visualisations, sans modifier les totaux ;
+- résolution des colonnes de référence et récupération de la communauté depuis `REF_Services_Utilisateurs` lorsqu’elle est disponible.
+
+## Installation
+
+1. Publier `index.html`, `README.md` et `.nojekyll` sur GitHub Pages.
+2. Ajouter un widget personnalisé dans Grist.
+3. Utiliser l’URL GitHub Pages.
+4. Accorder `Full document access` pour permettre la lecture des trois tables et des métadonnées de références.
+
+Le widget n’effectue aucune écriture dans Grist.
