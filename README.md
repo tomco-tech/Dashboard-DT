@@ -1,4 +1,4 @@
-# Tableau de bord DT global — V2.1
+# Tableau de bord DT global — V2.2
 
 Widget Grist en lecture seule consolidant :
 
@@ -9,13 +9,14 @@ Widget Grist en lecture seule consolidant :
 ## Fonctions
 
 - filtres intelligents par service utilisateur, communauté, catégorie de périmètre, priorité, statut, état et date cible ;
-- filtre de périmètre proposant `EMM`, `Infra & Flux` et `Chantiers de conception` ;
 - KPIs consolidés des périmètres ACMOSS et DT, tous cliquables ;
 - treemap des sujets par service ;
-- projection des livraisons du mois courant et du mois suivant, ventilée par catégorie ;
-- sujets à risque ou en retard ;
-- liste consolidée des sujets sous forme de cartes ;
-- lorsqu’une visualisation est sélectionnée, la section **Sujets concernés** affiche uniquement les cartes correspondantes, tandis que les autres visualisations utilisent la mise en évidence croisée ;
+- badge `C` lorsqu’un service possède au moins un chantier de conception ;
+- pondération renforcée des chantiers de conception dans le calcul de surface de la treemap ;
+- section indépendante **Projection des livraisons DT**, ventilée par catégorie sur le mois courant et le mois suivant ;
+- section indépendante **Sujets à risque ou en retard**, placée à droite de la projection sur les grands écrans ;
+- liste consolidée **Sujets concernés** sous forme de cartes ;
+- clic sur une carte : mise en évidence croisée et ouverture d’une fenêtre de détail en lecture seule ;
 - résolution des colonnes de référence et récupération de la communauté depuis `REF_Services_Utilisateurs` lorsqu’elle est disponible.
 
 ## Installation

@@ -276,12 +276,34 @@
     .service-tile:hover { filter: brightness(.975); transform: translateY(-1px); z-index: 3; }
     .service-tile.active { box-shadow: inset 0 0 0 3px var(--blue), 0 5px 14px rgba(49,87,213,.18); z-index: 4; }
     .service-tile-head { height: 100%; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 6px; min-width: 0; }
+    .service-name-row { width: 100%; display: flex; align-items: flex-start; justify-content: space-between; gap: 7px; min-width: 0; }
     .service-name { min-width: 0; max-width: 100%; font-size: 12px; line-height: 1.16; font-weight: 840; white-space: normal; overflow-wrap: anywhere; }
+    .service-conception-badge {
+      flex: 0 0 auto;
+      display: inline-grid;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 7px;
+      background: rgba(255,255,255,.88);
+      border: 1px solid rgba(70,84,106,.22);
+      color: #4b3c82;
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: .02em;
+      box-shadow: 0 2px 7px rgba(29,40,62,.08);
+    }
     .service-value { flex: 0 0 auto; min-width: 25px; text-align: center; padding: 2px 7px; border-radius: 999px; background: rgba(255,255,255,.8); color: #273650; border: 1px solid rgba(255,255,255,.94); font-size: 10.8px; font-weight: 890; }
     .service-tile.compact { padding: 7px 8px; }
     .service-tile.compact .service-name { font-size: 9.7px; line-height: 1.08; }
+    .service-tile.compact .service-conception-badge { width: 17px; height: 17px; border-radius: 6px; font-size: 8.6px; }
     .service-tile.compact .service-value { font-size: 9.7px; padding: 1px 5px; min-width: 21px; }
-    .dt-layout { display: grid; grid-template-columns: minmax(590px, 1.52fr) minmax(330px, .82fr); gap: 12px; }
+    .dt-sections-row { display: grid; grid-template-columns: minmax(590px, 1.52fr) minmax(330px, .82fr); gap: 54px; align-items: stretch; }
+    .dt-sections-row > .scope { min-width: 0; }
+    .projection-scope .scope-body { min-height: 452px; }
+    .alerts-scope .scope-body { padding-top: 12px; }
+    .alerts-scope .alerts-list { height: 438px; max-height: 438px; padding: 0; }
+    .projection-panel-head { min-height: 45px; }
     .projection-body { padding: 10px 11px 11px; overflow: hidden; }
     .projection-legend { display: flex; align-items: center; gap: 7px 12px; flex-wrap: wrap; margin-bottom: 8px; max-height: 72px; overflow: auto; }
     .legend-item {
@@ -380,6 +402,67 @@
     .subject-title { font-size: 13.2px; line-height: 1.24; font-weight: 870; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .subject-service { color: #5b687d; font-size: 11.5px; font-weight: 720; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .subject-meta { margin-top: auto; display: flex; flex-wrap: wrap; gap: 5px; }
+    body.modal-open { overflow: hidden; }
+    .subject-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(20, 29, 46, .42);
+      backdrop-filter: blur(2px);
+    }
+    .subject-modal-backdrop.open { display: flex; }
+    .subject-modal {
+      width: min(760px, 100%);
+      max-height: min(82vh, 820px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: 19px;
+      background: #fff;
+      box-shadow: 0 26px 70px rgba(18, 30, 52, .28);
+    }
+    .subject-modal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 19px 15px;
+      border-bottom: 1px solid var(--line);
+    }
+    .subject-modal-heading { min-width: 0; }
+    .subject-modal-kicker { color: var(--muted); font-size: 10px; font-weight: 880; letter-spacing: .08em; text-transform: uppercase; }
+    .subject-modal-title { margin: 4px 0 0; font-size: 20px; line-height: 1.2; letter-spacing: -.025em; }
+    .subject-modal-subtitle { margin-top: 5px; color: #617087; font-size: 12px; font-weight: 690; }
+    .subject-modal-close {
+      flex: 0 0 auto;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: #fff;
+      color: #526176;
+      font-size: 21px;
+      line-height: 1;
+    }
+    .subject-modal-close:hover { background: #f4f6f9; color: #26344c; }
+    .subject-modal-body { overflow: auto; padding: 16px 19px 20px; }
+    .subject-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .subject-detail-item {
+      min-width: 0;
+      padding: 10px 11px;
+      border: 1px solid #e2e7ef;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+    .subject-detail-item.wide { grid-column: 1 / -1; }
+    .subject-detail-label { margin-bottom: 4px; color: var(--muted); font-size: 9.8px; font-weight: 870; letter-spacing: .065em; text-transform: uppercase; }
+    .subject-detail-value { color: #273650; font-size: 12.4px; line-height: 1.45; font-weight: 690; overflow-wrap: anywhere; white-space: pre-wrap; }
     .prio-p0, .prio-p1 { background: var(--red-soft); color: #ae302a; }
     .prio-p2 { background: var(--orange-soft); color: #985400; }
     .prio-p3 { background: #eaf0ff; color: #3157c5; }
@@ -390,7 +473,7 @@
     .warning { margin: 0 0 14px; padding: 10px 12px; border-radius: 12px; background: #fff8e9; border: 1px solid #eed8aa; color: #805414; font-size: 12px; }
     .is-dimmed { opacity: .2 !important; filter: grayscale(.75) !important; }
     @media (max-width: 1180px) {
-      .dt-layout { grid-template-columns: 1fr; }
+      .dt-sections-row { grid-template-columns: 1fr; gap: 54px; }
       .subjects-grid { grid-template-columns: repeat(2, minmax(235px, 1fr)); }
       .service-treemap { height: 380px; }
     }
@@ -403,6 +486,8 @@
       .metric-card { width: 145px; flex-basis: 145px; }
       .service-treemap { height: 420px; }
       .projection-chart { min-width: 760px; }
+      .subject-detail-grid { grid-template-columns: 1fr; }
+      .subject-detail-item.wide { grid-column: auto; }
     }
     @media (max-width: 520px) {
       .filters-grid { grid-template-columns: 1fr; }
@@ -478,30 +563,31 @@
 
     <div class="scope-gap" aria-hidden="true"></div>
 
-    <section class="scope">
-      <div class="scope-head"><div class="scope-head-row"><h2>Périmètre DT</h2><span class="scope-total" id="dtTotal">0 sujet</span></div></div>
-      <div class="scope-body">
-        <div class="metric-grid">
-          <button class="metric-card clickable" id="dtMetric" type="button"><div class="metric-label">En cours DT</div><div class="metric-value" id="dtCount">0</div></button>
-          <button class="metric-card clickable" id="deployedMetric" type="button"><div class="metric-label">Déployés</div><div class="metric-value" id="deployedCount">0</div></button>
-          <button class="metric-card clickable" id="completedMetric" type="button"><div class="metric-label">Terminés</div><div class="metric-value" id="completedCount">0</div></button>
-        </div>
-        <div class="dt-layout">
+    <div class="dt-sections-row">
+      <section class="scope projection-scope">
+        <div class="scope-head"><div class="scope-head-row"><h2>Projection des livraisons DT</h2><span class="scope-total" id="dtTotal">0 sujet</span></div></div>
+        <div class="scope-body">
+          <div class="metric-grid">
+            <button class="metric-card clickable" id="dtMetric" type="button"><div class="metric-label">En cours DT</div><div class="metric-value" id="dtCount">0</div></button>
+            <button class="metric-card clickable" id="deployedMetric" type="button"><div class="metric-label">Déployés</div><div class="metric-value" id="deployedCount">0</div></button>
+            <button class="metric-card clickable" id="completedMetric" type="button"><div class="metric-label">Terminés</div><div class="metric-value" id="completedCount">0</div></button>
+          </div>
           <article class="panel">
-            <div class="panel-head"><div><div class="panel-title">Projection des livraisons</div><div class="panel-caption">Mois en cours et mois suivant, ventilés par catégorie.</div></div><span class="panel-count" id="projectionTotal">0 sujet</span></div>
+            <div class="panel-head projection-panel-head"><div class="panel-caption">Mois en cours et mois suivant, ventilés par catégorie.</div><span class="panel-count" id="projectionTotal">0 sujet</span></div>
             <div class="projection-body">
               <div class="projection-legend" id="projectionLegend"></div>
               <div class="projection-scroll"><div class="projection-chart"><div class="y-axis" id="yAxis"></div><div class="plot" id="projectionPlot"></div></div></div>
               <div class="no-target-note" id="noTargetNote">0 sujet sans date cible.</div>
             </div>
           </article>
-          <article class="panel">
-            <div class="panel-head"><div><div class="panel-title">Sujets à risque ou en retard</div><div class="panel-caption">Sujets dont la colonne État signale un risque ou un retard.</div></div><span class="panel-count" id="alertCount">0 sujet</span></div>
-            <div class="alerts-list" id="alertsList"></div>
-          </article>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section class="scope alerts-scope">
+        <div class="scope-head"><div class="scope-head-row"><h2>Sujets à risque ou en retard</h2><span class="scope-total" id="alertCount">0 sujet</span></div></div>
+        <div class="scope-body"><div class="alerts-list" id="alertsList"></div></div>
+      </section>
+    </div>
 
     <div class="scope-gap" aria-hidden="true"></div>
 
@@ -510,6 +596,20 @@
       <div class="subjects-grid" id="subjectsGrid"></div>
     </section>
   </main>
+
+  <div class="subject-modal-backdrop" id="subjectModal" aria-hidden="true">
+    <section class="subject-modal" role="dialog" aria-modal="true" aria-labelledby="subjectModalTitle">
+      <header class="subject-modal-head">
+        <div class="subject-modal-heading">
+          <div class="subject-modal-kicker" id="subjectModalKicker">Détail du sujet</div>
+          <h2 class="subject-modal-title" id="subjectModalTitle"></h2>
+          <div class="subject-modal-subtitle" id="subjectModalSubtitle"></div>
+        </div>
+        <button class="subject-modal-close" id="subjectModalClose" type="button" aria-label="Fermer">×</button>
+      </header>
+      <div class="subject-modal-body" id="subjectModalBody"></div>
+    </section>
+  </div>
 
   <script>
   (() => {
@@ -909,10 +1009,12 @@
         title: title || "Sujet sans intitulé",
         category,
         description,
+        caseValue: sourceFieldDisplay(source, row, "Case"),
         priority: sourceFieldDisplay(source, row, "Priority"),
         modifiedISO: dateToISO(sourceFieldRaw(source, row, "Modified")),
         status: sourceFieldDisplay(source, row, "Status"),
         state: sourceFieldDisplay(source, row, "State"),
+        assigned: sourceFieldDisplay(source, row, "Assigned"),
         targetISO: dateToISO(sourceFieldRaw(source, row, "Target")),
         createdISO: dateToISO(sourceFieldRaw(source, row, "Created")),
         comment: sourceFieldDisplay(source, row, "Comment")
@@ -1183,25 +1285,32 @@
         if (!groups.has(service)) groups.set(service, []);
         groups.get(service).push(record);
       }));
-      const entries = [...groups.entries()].map(([service, items]) => [service, unique(items.map(item => item.uid)).map(uid => items.find(item => item.uid === uid))]).sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0], "fr"));
+      const entries = [...groups.entries()].map(([service, items]) => {
+        const uniqueItems = unique(items.map(item => item.uid)).map(uid => items.find(item => item.uid === uid));
+        const conceptionCount = uniqueItems.filter(item => item.sourceKey === "conception").length;
+        return { service, items: uniqueItems, count: uniqueItems.length, conceptionCount, visualWeight: uniqueItems.length + conceptionCount };
+      }).sort((a, b) => b.visualWeight - a.visualWeight || b.count - a.count || a.service.localeCompare(b.service, "fr"));
       $("serviceCountBadge").textContent = `${entries.length} service${entries.length > 1 ? "s" : ""}`;
       const container = $("serviceTreemap");
       if (!entries.length) { container.innerHTML = '<div class="empty-state">Aucun sujet pour les filtres sélectionnés.</div>'; return; }
       const width = Math.max(320, container.clientWidth || 900);
       const height = Math.max(260, container.clientHeight || 350);
-      const maxCount = Math.max(1, ...entries.map(([, items]) => items.length));
-      const minWeight = Math.max(1, maxCount * .28);
-      const layout = squarifiedTreemap(entries.map(([service, items]) => ({ service, items, count: items.length, weight: Math.max(items.length, minWeight) })), 0, 0, width, height);
+      const maxCount = Math.max(1, ...entries.map(entry => entry.count));
+      const maxWeight = Math.max(1, ...entries.map(entry => entry.visualWeight));
+      const minWeight = Math.max(1, maxWeight * .28);
+      const layout = squarifiedTreemap(entries.map(entry => ({ ...entry, weight: Math.max(entry.visualWeight, minWeight) })), 0, 0, width, height);
       const gap = 2;
       container.innerHTML = layout.map(rect => {
         const tileWidth = Math.max(0, rect.width - gap * 2);
         const tileHeight = Math.max(0, rect.height - gap * 2);
-        const ratio = rect.count / maxCount;
+        const ratio = rect.visualWeight / maxWeight;
         const lightness = Math.round(96 - ratio * 18);
         const compact = tileWidth < 118 || tileHeight < 76;
         const key = `service:${rect.service}`;
         const classes = ["service-tile", compact ? "compact" : "", state.highlight?.key === key ? "active" : "", state.highlight && !highlightMatches(rect.items) ? "is-dimmed" : ""].filter(Boolean).join(" ");
-        return `<button class="${classes}" data-service-key="${esc(key)}" style="left:${rect.x + gap}px;top:${rect.y + gap}px;width:${tileWidth}px;height:${tileHeight}px;background:hsl(220 68% ${lightness}%);" title="${esc(rect.service)} — ${rect.count} sujet${rect.count > 1 ? "s" : ""}"><span class="service-tile-head"><span class="service-name">${esc(rect.service)}</span><span class="service-value">${rect.count}</span></span></button>`;
+        const conceptionBadge = rect.conceptionCount ? `<span class="service-conception-badge" title="${rect.conceptionCount} sujet${rect.conceptionCount > 1 ? "s" : ""} de chantier de conception · pondération renforcée">C</span>` : "";
+        const title = `${rect.service} — ${rect.count} sujet${rect.count > 1 ? "s" : ""}${rect.conceptionCount ? ` · ${rect.conceptionCount} chantier${rect.conceptionCount > 1 ? "s" : ""} de conception (poids renforcé)` : ""}`;
+        return `<button class="${classes}" data-service-key="${esc(key)}" style="left:${rect.x + gap}px;top:${rect.y + gap}px;width:${tileWidth}px;height:${tileHeight}px;background:hsl(220 68% ${lightness}%);" title="${esc(title)}"><span class="service-tile-head"><span class="service-name-row"><span class="service-name">${esc(rect.service)}</span>${conceptionBadge}</span><span class="service-value">${rect.count}</span></span></button>`;
       }).join("");
       layout.forEach(rect => {
         container.querySelector(`[data-service-key="${CSS.escape(`service:${rect.service}`)}"]`)?.addEventListener("click", () => toggleHighlight(`service:${rect.service}`, `Service : ${rect.service}`, rect.items));
@@ -1363,6 +1472,53 @@
       alerts.forEach(record => $("alertsList").querySelector(`[data-alert-uid="${CSS.escape(record.uid)}"]`)?.addEventListener("click", () => toggleHighlight(`record:${record.uid}`, `${record.serviceLabel} — ${record.title}`, [record])));
     }
 
+    function closeSubjectModal() {
+      const modal = $("subjectModal");
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    }
+
+    function detailBlock(label, value, wide = false) {
+      const display = text(value) || "Non renseigné";
+      return `<div class="subject-detail-item${wide ? " wide" : ""}"><div class="subject-detail-label">${esc(label)}</div><div class="subject-detail-value">${esc(display)}</div></div>`;
+    }
+
+    function openSubjectModal(record) {
+      $("subjectModalKicker").textContent = record.sourceLabel;
+      $("subjectModalTitle").textContent = record.title;
+      $("subjectModalSubtitle").textContent = record.serviceLabel || "Service non renseigné";
+      const details = [
+        detailBlock("Service utilisateur", record.serviceLabel),
+        detailBlock("Périmètre", record.sourceLabel),
+        detailBlock("Catégorie", record.category),
+        detailBlock("Cas", record.caseValue),
+        detailBlock("Priorité", record.priority),
+        detailBlock("État", record.state),
+        detailBlock("Statut", record.status),
+        detailBlock("Date cible", record.targetISO ? formatDate(record.targetISO) : ""),
+        detailBlock("Assignée à", record.assigned),
+        detailBlock("Modifiée le", record.modifiedISO ? formatDate(record.modifiedISO) : ""),
+        detailBlock("Créé le", record.createdISO ? formatDate(record.createdISO) : ""),
+        detailBlock("Description", record.description, true),
+        detailBlock("Commentaire", record.comment, true)
+      ];
+      $("subjectModalBody").innerHTML = `<div class="subject-detail-grid">${details.join("")}</div>`;
+      const modal = $("subjectModal");
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+      $("subjectModalClose").focus();
+    }
+
+    function selectSubjectAndOpen(record) {
+      const key = `record:${record.uid}`;
+      if (state.highlight?.key === key) state.highlight = null;
+      else state.highlight = { key, label: `${record.serviceLabel} — ${record.title}`, ids: new Set([record.uid]) };
+      renderDashboard();
+      openSubjectModal(record);
+    }
+
     function renderSubjects(records) {
       const subjectRecords = state.highlight
         ? records.filter(record => state.highlight.ids.has(record.uid))
@@ -1386,7 +1542,7 @@
         const stateClass = isOverdue(record) ? "danger" : isAtRisk(record) ? "risk" : "";
         return `<button type="button" class="${classes}" data-subject-uid="${esc(record.uid)}"><div class="subject-eyebrow"><span class="subject-source">${esc(record.sourceLabel)}</span><span class="subject-category">${esc(record.category)}</span></div><div class="subject-title">${esc(record.title)}</div><div class="subject-service">${esc(record.serviceLabel)}</div><div class="subject-meta"><span class="tag ${priorityClass(record.priority)}">${esc(record.priority || "Sans priorité")}</span><span class="tag ${stateClass}">État : ${esc(record.state || "Non renseigné")}</span><span class="tag">Statut : ${esc(record.status || "Non renseigné")}</span><span class="tag">Cible : ${esc(record.targetISO ? formatDate(record.targetISO) : "Non renseignée")}</span></div></button>`;
       }).join("");
-      sorted.forEach(record => $("subjectsGrid").querySelector(`[data-subject-uid="${CSS.escape(record.uid)}"]`)?.addEventListener("click", () => toggleHighlight(`record:${record.uid}`, `${record.serviceLabel} — ${record.title}`, [record])));
+      sorted.forEach(record => $("subjectsGrid").querySelector(`[data-subject-uid="${CSS.escape(record.uid)}"]`)?.addEventListener("click", () => selectSubjectAndOpen(record)));
     }
 
     function renderDashboard(skipControl = "") {
@@ -1441,6 +1597,9 @@
         renderDashboard();
       });
       $("selectionClear").addEventListener("click", () => { state.highlight = null; renderDashboard(); });
+      $("subjectModalClose").addEventListener("click", closeSubjectModal);
+      $("subjectModal").addEventListener("mousedown", event => { if (event.target === $("subjectModal")) closeSubjectModal(); });
+      document.addEventListener("keydown", event => { if (event.key === "Escape" && $("subjectModal").classList.contains("open")) closeSubjectModal(); });
       let resizeTimer = null;
       window.addEventListener("resize", () => {
         clearTimeout(resizeTimer);
