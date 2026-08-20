@@ -382,20 +382,51 @@
       background: #f9fafc;
     }
     .subject-card {
+      position: relative;
       min-height: 145px;
-      padding: 12px;
+      overflow: hidden;
       border: 1px solid var(--line);
       border-radius: 14px;
       background: #fff;
+      color: inherit;
+      transition: opacity .16s ease, filter .16s ease, border-color .14s ease, box-shadow .14s ease;
+    }
+    .subject-card:hover { border-color: #aebbd0; box-shadow: var(--shadow-soft); }
+    .subject-card.active { border-color: #6f88e4; box-shadow: inset 0 0 0 2px rgba(49,87,213,.12), var(--shadow-soft); }
+    .subject-card-main {
+      width: 100%;
+      min-height: 143px;
+      padding: 12px 46px 12px 12px;
+      border: 0;
+      background: transparent;
       color: inherit;
       text-align: left;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      transition: opacity .16s ease, filter .16s ease, border-color .14s ease, box-shadow .14s ease;
     }
-    .subject-card:hover { border-color: #aebbd0; box-shadow: var(--shadow-soft); }
-    .subject-card.active { border-color: #6f88e4; box-shadow: inset 0 0 0 2px rgba(49,87,213,.12), var(--shadow-soft); }
+    .subject-card-main:focus-visible { outline: 3px solid rgba(49,87,213,.2); outline-offset: -3px; }
+    .subject-zoom-button {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      z-index: 2;
+      width: 29px;
+      height: 29px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border: 1px solid #d2dbe8;
+      border-radius: 9px;
+      background: rgba(255,255,255,.94);
+      color: #536176;
+      font-size: 16px;
+      line-height: 1;
+      font-weight: 800;
+      box-shadow: 0 3px 9px rgba(25,39,66,.08);
+    }
+    .subject-zoom-button:hover { border-color: #9eacc1; background: #f5f7fa; color: #26344c; }
+    .subject-zoom-button:focus-visible { outline: 3px solid rgba(49,87,213,.18); outline-offset: 1px; }
     .subject-eyebrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 9.8px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
     .subject-source { white-space: nowrap; }
     .subject-category { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
@@ -605,7 +636,7 @@
           <h2 class="subject-modal-title" id="subjectModalTitle"></h2>
           <div class="subject-modal-subtitle" id="subjectModalSubtitle"></div>
         </div>
-        <button class="subject-modal-close" id="subjectModalClose" type="button" aria-label="Fermer">×</button>
+        <button class="subject-modal-close" id="subjectModalClose" type="button" aria-label="Réduire et fermer le détail" title="Réduire le détail">⤡</button>
       </header>
       <div class="subject-modal-body" id="subjectModalBody"></div>
     </section>
@@ -666,6 +697,7 @@
       filters: { service: "", community: "", source: "", priority: "", status: "", health: "", target: "" },
       categoryColors: new Map(),
       highlight: null,
+      modalUid: "",
       controls: new Map(),
       loading: false,
       reloadTimer: null
@@ -1477,6 +1509,7 @@
       modal.classList.remove("open");
       modal.setAttribute("aria-hidden", "true");
       document.body.classList.remove("modal-open");
+      state.modalUid = "";
     }
 
     function detailBlock(label, value, wide = false) {
@@ -1485,11 +1518,16 @@
     }
 
     function openSubjectModal(record) {
+      if ($("subjectModal").classList.contains("open") && state.modalUid === record.uid) {
+        closeSubjectModal();
+        return;
+      }
       $("subjectModalKicker").textContent = record.sourceLabel;
       $("subjectModalTitle").textContent = record.title;
       $("subjectModalSubtitle").textContent = record.serviceLabel || "Service non renseigné";
       const details = [
         detailBlock("Service utilisateur", record.serviceLabel),
+        detailBlock("Communauté", (record.communities || []).join(", ")),
         detailBlock("Périmètre", record.sourceLabel),
         detailBlock("Catégorie", record.category),
         detailBlock("Cas", record.caseValue),
@@ -1508,15 +1546,8 @@
       modal.classList.add("open");
       modal.setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
+      state.modalUid = record.uid;
       $("subjectModalClose").focus();
-    }
-
-    function selectSubjectAndOpen(record) {
-      const key = `record:${record.uid}`;
-      if (state.highlight?.key === key) state.highlight = null;
-      else state.highlight = { key, label: `${record.serviceLabel} — ${record.title}`, ids: new Set([record.uid]) };
-      renderDashboard();
-      openSubjectModal(record);
     }
 
     function renderSubjects(records) {
@@ -1540,9 +1571,15 @@
         const key = `record:${record.uid}`;
         const classes = ["subject-card", state.highlight?.key === key ? "active" : ""].filter(Boolean).join(" ");
         const stateClass = isOverdue(record) ? "danger" : isAtRisk(record) ? "risk" : "";
-        return `<button type="button" class="${classes}" data-subject-uid="${esc(record.uid)}"><div class="subject-eyebrow"><span class="subject-source">${esc(record.sourceLabel)}</span><span class="subject-category">${esc(record.category)}</span></div><div class="subject-title">${esc(record.title)}</div><div class="subject-service">${esc(record.serviceLabel)}</div><div class="subject-meta"><span class="tag ${priorityClass(record.priority)}">${esc(record.priority || "Sans priorité")}</span><span class="tag ${stateClass}">État : ${esc(record.state || "Non renseigné")}</span><span class="tag">Statut : ${esc(record.status || "Non renseigné")}</span><span class="tag">Cible : ${esc(record.targetISO ? formatDate(record.targetISO) : "Non renseignée")}</span></div></button>`;
+        return `<article class="${classes}" data-subject-card-uid="${esc(record.uid)}"><button type="button" class="subject-card-main" data-subject-select-uid="${esc(record.uid)}" aria-label="Mettre en évidence ${esc(record.title)}"><div class="subject-eyebrow"><span class="subject-source">${esc(record.sourceLabel)}</span><span class="subject-category">${esc(record.category)}</span></div><div class="subject-title">${esc(record.title)}</div><div class="subject-service">${esc(record.serviceLabel)}</div><div class="subject-meta"><span class="tag ${priorityClass(record.priority)}">${esc(record.priority || "Sans priorité")}</span><span class="tag ${stateClass}">État : ${esc(record.state || "Non renseigné")}</span><span class="tag">Statut : ${esc(record.status || "Non renseigné")}</span><span class="tag">Cible : ${esc(record.targetISO ? formatDate(record.targetISO) : "Non renseignée")}</span></div></button><button type="button" class="subject-zoom-button" data-subject-zoom-uid="${esc(record.uid)}" aria-label="Ouvrir le détail de ${esc(record.title)}" title="Voir le détail">⤢</button></article>`;
       }).join("");
-      sorted.forEach(record => $("subjectsGrid").querySelector(`[data-subject-uid="${CSS.escape(record.uid)}"]`)?.addEventListener("click", () => selectSubjectAndOpen(record)));
+      sorted.forEach(record => {
+        $("subjectsGrid").querySelector(`[data-subject-select-uid="${CSS.escape(record.uid)}"]`)?.addEventListener("click", () => toggleHighlight(`record:${record.uid}`, `${record.serviceLabel} — ${record.title}`, [record]));
+        $("subjectsGrid").querySelector(`[data-subject-zoom-uid="${CSS.escape(record.uid)}"]`)?.addEventListener("click", event => {
+          event.stopPropagation();
+          openSubjectModal(record);
+        });
+      });
     }
 
     function renderDashboard(skipControl = "") {

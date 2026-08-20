@@ -16,7 +16,8 @@ Widget Grist en lecture seule consolidant :
 - section indépendante **Projection des livraisons DT**, ventilée par catégorie sur le mois courant et le mois suivant ;
 - section indépendante **Sujets à risque ou en retard**, placée à droite de la projection sur les grands écrans ;
 - liste consolidée **Sujets concernés** sous forme de cartes ;
-- clic sur une carte : mise en évidence croisée et ouverture d’une fenêtre de détail en lecture seule ;
+- clic sur une carte : mise en évidence croisée ;
+- bouton `⤢` sur chaque carte : ouverture d’une fenêtre de détail en lecture seule, refermable avec `⤡`, en cliquant hors de la fenêtre ou avec Échap ;
 - résolution des colonnes de référence et récupération de la communauté depuis `REF_Services_Utilisateurs` lorsqu’elle est disponible.
 
 ## Installation
