@@ -70,7 +70,7 @@
     }
     .filters-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(190px, 1fr));
+      grid-template-columns: repeat(4, minmax(170px, 1fr));
       gap: 10px;
       align-items: end;
     }
@@ -429,6 +429,11 @@
           <div class="smart-input-shell"><span class="smart-icon">⌕</span><input class="smart-input" id="communityInput" autocomplete="off" placeholder="Toutes les communautés" /><button class="smart-clear" id="communityClear" type="button" aria-label="Effacer la communauté">×</button></div>
           <div class="smart-suggestions" id="communitySuggestions"></div>
         </div>
+        <div class="smart-filter" data-filter="source">
+          <label class="filter-label" for="sourceInput">Catégorie</label>
+          <div class="smart-input-shell"><span class="smart-icon">⌕</span><input class="smart-input" id="sourceInput" autocomplete="off" placeholder="Tous les périmètres" /><button class="smart-clear" id="sourceClear" type="button" aria-label="Effacer la catégorie">×</button></div>
+          <div class="smart-suggestions" id="sourceSuggestions"></div>
+        </div>
         <div class="smart-filter" data-filter="priority">
           <label class="filter-label" for="priorityInput">Priorité</label>
           <div class="smart-input-shell"><span class="smart-icon">⌕</span><input class="smart-input" id="priorityInput" autocomplete="off" placeholder="Toutes les priorités" /><button class="smart-clear" id="priorityClear" type="button" aria-label="Effacer la priorité">×</button></div>
@@ -460,9 +465,9 @@
       <div class="scope-head"><div class="scope-head-row"><h2>Périmètre ACMOSS</h2><span class="scope-total" id="acmossTotal">0 sujet</span></div></div>
       <div class="scope-body">
         <div class="metric-grid">
-          <article class="metric-card" id="ongoingMetric"><div class="metric-label">Demandes en cours</div><div class="metric-value" id="ongoingCount">0</div></article>
-          <article class="metric-card overdue" id="overdueMetric"><div class="metric-label">En retard</div><div class="metric-value" id="overdueCount">0</div></article>
-          <article class="metric-card risk" id="riskMetric"><div class="metric-label">À risque</div><div class="metric-value" id="riskCount">0</div></article>
+          <button class="metric-card clickable" id="ongoingMetric" type="button"><div class="metric-label">Demandes en cours</div><div class="metric-value" id="ongoingCount">0</div></button>
+          <button class="metric-card clickable overdue" id="overdueMetric" type="button"><div class="metric-label">En retard</div><div class="metric-value" id="overdueCount">0</div></button>
+          <button class="metric-card clickable risk" id="riskMetric" type="button"><div class="metric-label">À risque</div><div class="metric-value" id="riskCount">0</div></button>
         </div>
         <article class="panel">
           <div class="panel-head"><div><div class="panel-title">Répartition des demandes par service</div><div class="panel-caption">La taille de chaque compartiment dépend du nombre de sujets.</div></div><span class="panel-count" id="serviceCountBadge">0 service</span></div>
@@ -498,7 +503,7 @@
       </div>
     </section>
 
-    <div class="scope-gap" style="height:30px" aria-hidden="true"></div>
+    <div class="scope-gap" aria-hidden="true"></div>
 
     <section class="scope">
       <div class="scope-head"><div class="scope-head-row"><h2>Sujets concernés</h2><span class="scope-total" id="subjectCount">0 sujet</span></div></div>
@@ -543,6 +548,7 @@
     const FILTER_CONFIG = {
       service: { input: "serviceInput", list: "serviceSuggestions", clear: "serviceClear", placeholder: "Tous les services" },
       community: { input: "communityInput", list: "communitySuggestions", clear: "communityClear", placeholder: "Toutes les communautés" },
+      source: { input: "sourceInput", list: "sourceSuggestions", clear: "sourceClear", placeholder: "Tous les périmètres" },
       priority: { input: "priorityInput", list: "prioritySuggestions", clear: "priorityClear", placeholder: "Toutes les priorités" },
       status: { input: "statusInput", list: "statusSuggestions", clear: "statusClear", placeholder: "Tous les statuts" },
       health: { input: "healthInput", list: "healthSuggestions", clear: "healthClear", placeholder: "Tous les états" },
@@ -557,7 +563,7 @@
       refCatalogs: new Map(),
       serviceCatalogId: "",
       records: [],
-      filters: { service: "", community: "", priority: "", status: "", health: "", target: "" },
+      filters: { service: "", community: "", source: "", priority: "", status: "", health: "", target: "" },
       categoryColors: new Map(),
       highlight: null,
       controls: new Map(),
@@ -939,6 +945,7 @@
     function recordValues(record, field) {
       if (field === "service") return record.services;
       if (field === "community") return record.communities;
+      if (field === "source") return [record.sourceLabel];
       if (field === "priority") return [record.priority || EMPTY];
       if (field === "status") return [record.status || EMPTY];
       if (field === "health") return [record.state || EMPTY];
@@ -981,6 +988,10 @@
       recordsMatchingFilters(field).forEach(record => recordValues(record, field).forEach(value => counts.set(value, (counts.get(value) || 0) + 1)));
       const options = [...counts.entries()].map(([value, count]) => ({ value, label: optionLabel(field, value), count }));
       options.sort((a, b) => {
+        if (field === "source") {
+          const order = ["EMM", "Infra & Flux", "Chantiers de conception"];
+          return order.indexOf(a.value) - order.indexOf(b.value) || a.label.localeCompare(b.label, "fr");
+        }
         if (field === "priority") return priorityRank(a.value) - priorityRank(b.value) || a.label.localeCompare(b.label, "fr");
         if (field === "status") return statusRank(a.value) - statusRank(b.value) || a.label.localeCompare(b.label, "fr");
         if (field === "target") {
@@ -1198,16 +1209,17 @@
     }
 
     function renderOverview(records) {
-      const ongoing = records.filter(record => record.status && !isFinalStatus(record.status));
-      const overdue = records.filter(isOverdue);
-      const risk = records.filter(isAtRisk);
-      $("ongoingCount").textContent = ongoing.length;
-      $("overdueCount").textContent = overdue.length;
-      $("riskCount").textContent = risk.length;
+      const groups = [
+        { element: $("ongoingMetric"), count: $("ongoingCount"), key: "overview:ongoing", label: "Demandes en cours", items: records.filter(record => record.status && !isFinalStatus(record.status)) },
+        { element: $("overdueMetric"), count: $("overdueCount"), key: "overview:overdue", label: "État : En retard", items: records.filter(isOverdue) },
+        { element: $("riskMetric"), count: $("riskCount"), key: "overview:risk", label: "État : À risque", items: records.filter(isAtRisk) }
+      ];
+      groups.forEach(group => {
+        group.count.textContent = group.items.length;
+        applySubsetVisual(group.element, group.items, group.key);
+        group.element.onclick = () => toggleHighlight(group.key, group.label, group.items);
+      });
       $("acmossTotal").textContent = `${records.length} sujet${records.length > 1 ? "s" : ""}`;
-      applySubsetVisual($("ongoingMetric"), ongoing);
-      applySubsetVisual($("overdueMetric"), overdue);
-      applySubsetVisual($("riskMetric"), risk);
       renderServiceTreemap(records);
     }
 
@@ -1352,16 +1364,25 @@
     }
 
     function renderSubjects(records) {
-      const sorted = [...records].sort((a, b) => {
+      const subjectRecords = state.highlight
+        ? records.filter(record => state.highlight.ids.has(record.uid))
+        : records;
+      const sorted = [...subjectRecords].sort((a, b) => {
         const stateA = isOverdue(a) ? 0 : isAtRisk(a) ? 1 : 2;
         const stateB = isOverdue(b) ? 0 : isAtRisk(b) ? 1 : 2;
         return stateA - stateB || priorityRank(a.priority) - priorityRank(b.priority) || (a.targetISO || "9999").localeCompare(b.targetISO || "9999") || a.title.localeCompare(b.title, "fr");
       });
       $("subjectCount").textContent = `${sorted.length} sujet${sorted.length > 1 ? "s" : ""}`;
-      if (!sorted.length) { $("subjectsGrid").innerHTML = '<div class="empty-state" style="grid-column:1/-1">Aucun sujet ne correspond aux filtres sélectionnés.</div>'; return; }
+      if (!sorted.length) {
+        const message = state.highlight
+          ? "Aucun sujet ne correspond à la sélection active et aux filtres."
+          : "Aucun sujet ne correspond aux filtres sélectionnés.";
+        $("subjectsGrid").innerHTML = `<div class="empty-state" style="grid-column:1/-1">${message}</div>`;
+        return;
+      }
       $("subjectsGrid").innerHTML = sorted.map(record => {
         const key = `record:${record.uid}`;
-        const classes = ["subject-card", state.highlight?.key === key ? "active" : "", state.highlight && !state.highlight.ids.has(record.uid) ? "is-dimmed" : ""].filter(Boolean).join(" ");
+        const classes = ["subject-card", state.highlight?.key === key ? "active" : ""].filter(Boolean).join(" ");
         const stateClass = isOverdue(record) ? "danger" : isAtRisk(record) ? "risk" : "";
         return `<button type="button" class="${classes}" data-subject-uid="${esc(record.uid)}"><div class="subject-eyebrow"><span class="subject-source">${esc(record.sourceLabel)}</span><span class="subject-category">${esc(record.category)}</span></div><div class="subject-title">${esc(record.title)}</div><div class="subject-service">${esc(record.serviceLabel)}</div><div class="subject-meta"><span class="tag ${priorityClass(record.priority)}">${esc(record.priority || "Sans priorité")}</span><span class="tag ${stateClass}">État : ${esc(record.state || "Non renseigné")}</span><span class="tag">Statut : ${esc(record.status || "Non renseigné")}</span><span class="tag">Cible : ${esc(record.targetISO ? formatDate(record.targetISO) : "Non renseignée")}</span></div></button>`;
       }).join("");
