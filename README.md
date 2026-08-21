@@ -1,4 +1,4 @@
-# Tableau de bord DT global — V2.3
+# Tableau de bord DT global — V2.4
 
 Widget Grist en lecture seule consolidant :
 
@@ -29,3 +29,9 @@ Widget Grist en lecture seule consolidant :
 4. Accorder `Full document access` pour permettre la lecture des trois tables et des métadonnées de références.
 
 Le widget n’effectue aucune écriture dans Grist.
+
+
+## Ajustements V2.4
+
+- Badge `C` de la treemap adouci avec un bleu très clair.
+- Couleur `Configuration EMM` de la projection remplacée par un vert sauge pâle, avec un texte sombre pour conserver la lisibilité.

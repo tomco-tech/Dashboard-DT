@@ -285,13 +285,13 @@
       width: 20px;
       height: 20px;
       border-radius: 7px;
-      background: #3f5fc8;
-      border: 1px solid #2f4aa8;
-      color: #fff;
+      background: #dce8f5;
+      border: 1px solid #b8cbe1;
+      color: #3f5d79;
       font-size: 10px;
       font-weight: 950;
       letter-spacing: .02em;
-      box-shadow: 0 2px 7px rgba(49,87,213,.22);
+      box-shadow: 0 2px 6px rgba(63,93,121,.12);
     }
     .service-value { flex: 0 0 auto; min-width: 25px; text-align: center; padding: 2px 7px; border-radius: 999px; background: rgba(255,255,255,.8); color: #273650; border: 1px solid rgba(255,255,255,.94); font-size: 10.8px; font-weight: 890; }
     .service-tile.compact { padding: 7px 8px; }
@@ -648,7 +648,7 @@
     const NO_TARGET = "__NO_TARGET__";
 
     const SOURCE_DEFS = [
-      { key: "emm", label: "EMM", projectionLabel: "Configuration EMM", projectionColor: "#3157d5", tableLabel: "B_EMM", candidates: ["B_EMM"] },
+      { key: "emm", label: "EMM", projectionLabel: "Configuration EMM", projectionColor: "#a9bd8b", projectionTextColor: "#344229", tableLabel: "B_EMM", candidates: ["B_EMM"] },
       { key: "infra", label: "Infra & Flux", projectionLabel: "Infra & Flux", projectionColor: "#0f8b8d", tableLabel: "B_Infra & Flux", candidates: ["B_Infra_Flux", "B_Infra & Flux", "B_Infra__Flux"] },
       { key: "conception", label: "Chantiers de conception", projectionLabel: "Chantier de conception", projectionColor: "#7c5cff", tableLabel: "B_Chantiers de conception", candidates: ["B_Chantiers_de_conception", "B_Chantiers de conception"] }
     ];
@@ -1081,6 +1081,11 @@
       );
     }
 
+    function projectionTextColor(category) {
+      const source = state.sources.find(item => (item.projectionLabel || item.label) === category);
+      return source?.projectionTextColor || "#fff";
+    }
+
     function recordValues(record, field) {
       if (field === "service") return record.services;
       if (field === "community") return record.communities;
@@ -1480,7 +1485,7 @@
           const key = `projection:${bucket.key}:${category}`;
           const classes = ["stack-segment", state.highlight && !highlightMatches(items) ? "is-dimmed" : ""].filter(Boolean).join(" ");
           const label = height >= 15 ? items.length : "";
-          return `<button type="button" class="${classes}" data-projection-key="${esc(key)}" style="height:${height}%;background:${state.categoryColors.get(category)}" title="${esc(category)} · ${bucket.startDay}–${bucket.endDay} : ${items.length}">${label}</button>`;
+          return `<button type="button" class="${classes}" data-projection-key="${esc(key)}" style="height:${height}%;background:${state.categoryColors.get(category)};color:${projectionTextColor(category)}" title="${esc(category)} · ${bucket.startDay}–${bucket.endDay} : ${items.length}">${label}</button>`;
         }).join("");
         return `<div class="week-column"><div class="stack-area"><div><div class="week-total">${total || ""}</div><div class="stack-total" style="height:${totalHeight}px">${segments}</div></div></div><div class="week-label">${bucketLabel(bucket)}</div></div>`;
       }).join("")}`;
