@@ -285,13 +285,13 @@
       width: 20px;
       height: 20px;
       border-radius: 7px;
-      background: rgba(255,255,255,.88);
-      border: 1px solid rgba(70,84,106,.22);
-      color: #4b3c82;
+      background: #3f5fc8;
+      border: 1px solid #2f4aa8;
+      color: #fff;
       font-size: 10px;
       font-weight: 950;
       letter-spacing: .02em;
-      box-shadow: 0 2px 7px rgba(29,40,62,.08);
+      box-shadow: 0 2px 7px rgba(49,87,213,.22);
     }
     .service-value { flex: 0 0 auto; min-width: 25px; text-align: center; padding: 2px 7px; border-radius: 999px; background: rgba(255,255,255,.8); color: #273650; border: 1px solid rgba(255,255,255,.94); font-size: 10.8px; font-weight: 890; }
     .service-tile.compact { padding: 7px 8px; }
@@ -604,7 +604,7 @@
             <button class="metric-card clickable" id="completedMetric" type="button"><div class="metric-label">Terminés</div><div class="metric-value" id="completedCount">0</div></button>
           </div>
           <article class="panel">
-            <div class="panel-head projection-panel-head"><div class="panel-caption">Mois en cours et mois suivant, ventilés par catégorie.</div><span class="panel-count" id="projectionTotal">0 sujet</span></div>
+            <div class="panel-head projection-panel-head"><div class="panel-caption">Mois en cours et mois suivant, ventilés par périmètre.</div><span class="panel-count" id="projectionTotal">0 sujet</span></div>
             <div class="projection-body">
               <div class="projection-legend" id="projectionLegend"></div>
               <div class="projection-scroll"><div class="projection-chart"><div class="y-axis" id="yAxis"></div><div class="plot" id="projectionPlot"></div></div></div>
@@ -648,9 +648,9 @@
     const NO_TARGET = "__NO_TARGET__";
 
     const SOURCE_DEFS = [
-      { key: "emm", label: "EMM", tableLabel: "B_EMM", candidates: ["B_EMM"] },
-      { key: "infra", label: "Infra & Flux", tableLabel: "B_Infra & Flux", candidates: ["B_Infra_Flux", "B_Infra & Flux", "B_Infra__Flux"] },
-      { key: "conception", label: "Chantiers de conception", tableLabel: "B_Chantiers de conception", candidates: ["B_Chantiers_de_conception", "B_Chantiers de conception"] }
+      { key: "emm", label: "EMM", projectionLabel: "Configuration EMM", projectionColor: "#3157d5", tableLabel: "B_EMM", candidates: ["B_EMM"] },
+      { key: "infra", label: "Infra & Flux", projectionLabel: "Infra & Flux", projectionColor: "#0f8b8d", tableLabel: "B_Infra & Flux", candidates: ["B_Infra_Flux", "B_Infra & Flux", "B_Infra__Flux"] },
+      { key: "conception", label: "Chantiers de conception", projectionLabel: "Chantier de conception", projectionColor: "#7c5cff", tableLabel: "B_Chantiers de conception", candidates: ["B_Chantiers_de_conception", "B_Chantiers de conception"] }
     ];
 
     const FIELD_DEFS = {
@@ -1035,6 +1035,7 @@
         rowId: Number(row.id),
         sourceKey: source.key,
         sourceLabel: source.label,
+        projectionCategory: source.projectionLabel || source.label,
         services: serviceData.services,
         serviceLabel: serviceData.services.join(", "),
         communities: serviceData.communities,
@@ -1072,8 +1073,12 @@
     }
 
     function buildCategoryColors() {
-      const categories = unique(state.records.map(record => record.category)).sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }));
-      state.categoryColors = new Map(categories.map((category, index) => [category, CATEGORY_COLORS[index % CATEGORY_COLORS.length]]));
+      state.categoryColors = new Map(
+        state.sources.map((source, index) => [
+          source.projectionLabel || source.label,
+          source.projectionColor || CATEGORY_COLORS[index % CATEGORY_COLORS.length]
+        ])
+      );
     }
 
     function recordValues(record, field) {
@@ -1431,23 +1436,29 @@
         const bucket = byKey.get(projectionBucketKey(record.targetISO));
         if (!bucket) return;
         bucket.records.push(record);
-        if (!bucket.categories.has(record.category)) bucket.categories.set(record.category, []);
-        bucket.categories.get(record.category).push(record);
+        if (!bucket.categories.has(record.projectionCategory)) bucket.categories.set(record.projectionCategory, []);
+        bucket.categories.get(record.projectionCategory).push(record);
       });
       const projectionRecords = buckets.flatMap(bucket => bucket.records);
-      const categories = unique(projectionRecords.map(record => record.category)).sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }));
+      const categories = unique(projectionRecords.map(record => record.projectionCategory)).sort((a, b) => {
+        const order = ["Configuration EMM", "Infra & Flux", "Chantier de conception"];
+        const indexA = order.indexOf(a);
+        const indexB = order.indexOf(b);
+        if (indexA !== -1 || indexB !== -1) return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+        return a.localeCompare(b, "fr", { sensitivity: "base" });
+      });
       const legend = $("projectionLegend");
-      if (!categories.length) legend.innerHTML = '<span class="panel-caption">Aucune catégorie à projeter sur les deux mois.</span>';
+      if (!categories.length) legend.innerHTML = '<span class="panel-caption">Aucun périmètre à projeter sur les deux mois.</span>';
       else {
         legend.innerHTML = categories.map(category => {
-          const items = projectionRecords.filter(record => record.category === category);
+          const items = projectionRecords.filter(record => record.projectionCategory === category);
           const key = `projection-category:${category}`;
           const classes = ["legend-item", state.highlight?.key === key ? "active" : "", state.highlight && !highlightMatches(items) ? "is-dimmed" : ""].filter(Boolean).join(" ");
           return `<button type="button" class="${classes}" data-category-key="${esc(key)}"><span class="legend-dot" style="background:${state.categoryColors.get(category)}"></span>${esc(category)}</button>`;
         }).join("");
         categories.forEach(category => {
-          const items = projectionRecords.filter(record => record.category === category);
-          legend.querySelector(`[data-category-key="${CSS.escape(`projection-category:${category}`)}"]`)?.addEventListener("click", () => toggleHighlight(`projection-category:${category}`, `Catégorie : ${category}`, items));
+          const items = projectionRecords.filter(record => record.projectionCategory === category);
+          legend.querySelector(`[data-category-key="${CSS.escape(`projection-category:${category}`)}"]`)?.addEventListener("click", () => toggleHighlight(`projection-category:${category}`, `Périmètre : ${category}`, items));
         });
       }
 
